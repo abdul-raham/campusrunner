@@ -123,13 +123,12 @@ export interface StudentSignupForm {
   phone: string;
   university: string;
   hostel_location: string;
+  matric_number: string;
   password: string;
   confirmPassword: string;
 }
 
-export interface RunnerSignupForm extends StudentSignupForm {
-  student_id_number: string;
-}
+export interface RunnerSignupForm extends StudentSignupForm {}
 
 export interface LoginForm {
   email: string;

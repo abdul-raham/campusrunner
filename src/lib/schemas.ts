@@ -9,6 +9,7 @@ export const studentSignupSchema = z
     hostel_location: z
       .string()
       .min(2, 'Location must be at least 2 characters'),
+    matric_number: z.string().min(3, 'Matric number is required'),
     password: z
       .string()
       .min(8, 'Password must be at least 8 characters')
@@ -21,9 +22,7 @@ export const studentSignupSchema = z
     path: ['confirmPassword'],
   });
 
-export const runnerSignupSchema = studentSignupSchema.extend({
-  student_id_number: z.string().min(3, 'Student ID is required'),
-});
+export const runnerSignupSchema = studentSignupSchema;
 
 export const loginSchema = z.object({
   email: z.string().email('Invalid email address'),

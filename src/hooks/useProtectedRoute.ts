@@ -10,7 +10,7 @@ export const useProtectedRoute = (allowedRoles?: AllowedRole[]) => {
 
   useEffect(() => {
     if (!loading && !user) {
-      router.push('/auth/login');
+      router.push('/login');
     }
 
     if (!loading && profile && allowedRoles) {
