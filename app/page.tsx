@@ -24,7 +24,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { useState } from 'react';
-import AnimatedLoader from '../components/AnimatedLoader';
+import AnimatedLoader from '@/components/AnimatedLoader';
 
 const services = [
   {
@@ -80,7 +80,7 @@ const fadeUp = {
     transition: {
       delay: i * 0.08,
       duration: 0.6,
-      ease: 'easeOut',
+      ease: [0.25, 0.46, 0.45, 0.94],
     },
   }),
 };
