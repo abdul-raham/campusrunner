@@ -21,7 +21,8 @@ export default function StudentLayout({
     }
   }, [user, profile, loading, router]);
 
-  if (loading) {
+  // Show layout immediately if user exists, even if profile is still loading
+  if (loading && !user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC]">
         <div className="text-center">
@@ -32,7 +33,7 @@ export default function StudentLayout({
     );
   }
 
-  if (!user || profile?.role !== 'student') {
+  if (!loading && (!user || profile?.role !== 'student')) {
     return null;
   }
 
@@ -127,7 +128,7 @@ export default function StudentLayout({
               <span className="font-bold text-gray-900">CampusRunner</span>
             </div>
             <div className="w-8 h-8 bg-[#6200EE] rounded-full flex items-center justify-center text-white font-semibold text-sm">
-              {profile?.full_name?.charAt(0)}
+              {profile?.full_name?.charAt(0) || user?.email?.charAt(0)?.toUpperCase() || 'U'}
             </div>
           </div>
         </header>

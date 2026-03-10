@@ -19,8 +19,9 @@ export const useAuth = () => {
 
         if (user) {
           setUser(user);
+          setLoading(false); // Set loading false immediately after user is found
 
-          // Fetch user profile
+          // Fetch user profile in background
           const { data: profileData, error: profileError } = await supabase
             .from('profiles')
             .select('*')
@@ -28,14 +29,15 @@ export const useAuth = () => {
             .single();
 
           if (profileError && profileError.code !== 'PGRST116') {
-            throw profileError;
+            console.error('Profile fetch error:', profileError);
           }
 
           setProfile(profileData);
+        } else {
+          setLoading(false);
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An error occurred');
-      } finally {
         setLoading(false);
       }
     };

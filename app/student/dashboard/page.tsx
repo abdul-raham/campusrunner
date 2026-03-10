@@ -1,8 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import MinimalLoader from '@/components/MinimalLoader';
 import { 
   Bell, 
   Search, 
@@ -22,7 +20,6 @@ import {
 
 export default function StudentDashboard() {
   const [activeTab, setActiveTab] = useState('home');
-  const [isLoading, setIsLoading] = useState(true);
 
   const quickActions = [
     { icon: ShoppingCart, label: 'Market Run', color: 'bg-blue-50 text-blue-600' },
@@ -38,14 +35,6 @@ export default function StudentDashboard() {
   ];
 
   return (
-    <>
-      <AnimatePresence>
-        {isLoading && (
-          <MinimalLoader onComplete={() => setIsLoading(false)} />
-        )}
-      </AnimatePresence>
-      
-      {!isLoading && (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-white px-4 py-6 shadow-sm">
         <div className="flex items-center justify-between">
@@ -209,7 +198,5 @@ export default function StudentDashboard() {
         </div>
       </div>
     </div>
-      )}
-    </>
   );
 }

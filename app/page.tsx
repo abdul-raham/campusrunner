@@ -20,6 +20,10 @@ import {
   Zap,
   Flame,
   ShieldCheck,
+  X,
+  Lightbulb,
+  Cog,
+  LogIn,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
@@ -88,6 +92,7 @@ const fadeUp = {
 
 export default function HomePage() {
   const [isLoading, setIsLoading] = useState(true);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
     <>
@@ -144,10 +149,135 @@ export default function HomePage() {
             </Link>
           </div>
 
-          <button className="rounded-xl border border-[#E9E4FF] bg-white p-2.5 md:hidden">
-            <Menu className="h-5 w-5 text-[#6200EE]" />
+          <button 
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="md:hidden"
+          >
+            <motion.div
+              animate={{ rotate: mobileMenuOpen ? 180 : 0 }}
+              transition={{ duration: 0.3 }}
+              className="rounded-xl border border-[#E9E4FF] bg-white p-2.5 shadow-sm hover:shadow-md transition"
+            >
+              {mobileMenuOpen ? (
+                <X className="h-5 w-5 text-[#6200EE]" />
+              ) : (
+                <Menu className="h-5 w-5 text-[#6200EE]" />
+              )}
+            </motion.div>
           </button>
         </div>
+
+        {/* Mobile Menu - Glassmorphic */}
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <>
+              {/* Backdrop */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setMobileMenuOpen(false)}
+                className="fixed inset-0 top-[68px] z-40 bg-black/20 backdrop-blur-sm md:hidden"
+              />
+
+              {/* Menu */}
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3, ease: 'easeOut' }}
+                className="absolute left-0 right-0 top-[68px] z-50 border-b border-white/30 bg-white/80 backdrop-blur-2xl md:hidden"
+              >
+                <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
+                  {/* Navigation Links */}
+                  <div className="mb-6 space-y-2">
+                    <motion.a 
+                      href="#features"
+                      onClick={() => setMobileMenuOpen(false)}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.05 }}
+                      className="flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold text-[#0B0E11] transition hover:bg-[#F4ECFF] hover:text-[#6200EE]"
+                    >
+                      <Lightbulb className="h-5 w-5" />
+                      <span>Features</span>
+                    </motion.a>
+
+                    <motion.a 
+                      href="#services"
+                      onClick={() => setMobileMenuOpen(false)}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.1 }}
+                      className="flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold text-[#0B0E11] transition hover:bg-[#F4ECFF] hover:text-[#6200EE]"
+                    >
+                      <Sparkles className="h-5 w-5" />
+                      <span>Services</span>
+                    </motion.a>
+
+                    <motion.a 
+                      href="#how-it-works"
+                      onClick={() => setMobileMenuOpen(false)}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.15 }}
+                      className="flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold text-[#0B0E11] transition hover:bg-[#F4ECFF] hover:text-[#6200EE]"
+                    >
+                      <Cog className="h-5 w-5" />
+                      <span>How it works</span>
+                    </motion.a>
+                  </div>
+
+                  {/* Divider */}
+                  <div className="my-4 h-px bg-gradient-to-r from-[#E9E4FF]/0 via-[#E9E4FF] to-[#E9E4FF]/0" />
+
+                  {/* Action Buttons */}
+                  <div className="space-y-2">
+                    <motion.div
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.2 }}
+                    >
+                      <Link
+                        href="/login"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="flex items-center justify-center gap-2 rounded-2xl border border-[#E9E4FF] bg-white px-5 py-3 text-sm font-semibold text-[#6200EE] transition hover:bg-[#F8F5FF] hover:border-[#6200EE]/40 hover:shadow-lg"
+                      >
+                        <LogIn className="h-4 w-4" />
+                        Login
+                      </Link>
+                    </motion.div>
+
+                    <motion.div
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.25 }}
+                    >
+                      <Link
+                        href="/signup"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#6200EE] to-[#4F2EE8] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-[#6200EE]/20 transition hover:shadow-xl hover:shadow-[#6200EE]/30"
+                      >
+                        <Sparkles className="h-4 w-4" />
+                        Get Started
+                      </Link>
+                    </motion.div>
+                  </div>
+
+                  {/* Info Message */}
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.3 }}
+                    className="mt-6 rounded-2xl border border-[#E9E4FF] bg-white/50 p-3 text-center text-xs text-[#6B7280]"
+                  >
+                    ✨ Campus errands, beautifully simple
+                  </motion.div>
+                </div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
       </header>
 
       <section className="relative mx-auto max-w-7xl px-4 pb-20 pt-12 md:px-6 md:pb-28 md:pt-20">
@@ -169,7 +299,7 @@ export default function HomePage() {
               animate="visible"
               variants={fadeUp}
               custom={2}
-              className="max-w-3xl text-5xl font-black leading-[0.98] tracking-tight md:text-6xl xl:text-7xl"
+              className="max-w-3xl text-3xl font-black leading-[1.1] sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl tracking-tight"
             >
               Get campus errands done{' '}
               <span className="bg-gradient-to-r from-[#6200EE] to-[#03DAC5] bg-clip-text text-transparent">
@@ -183,7 +313,7 @@ export default function HomePage() {
               animate="visible"
               variants={fadeUp}
               custom={3}
-              className="mt-6 max-w-2xl text-lg leading-8 text-[#6B7280] md:text-xl"
+              className="mt-6 max-w-2xl text-sm sm:text-base md:text-lg leading-7 sm:leading-8 md:leading-8 text-[#6B7280]"
             >
               CampusRunner connects students with trusted runners for market runs,
               food pickup, laundry, printing, pharmacy errands, parcel delivery,
@@ -195,11 +325,11 @@ export default function HomePage() {
               animate="visible"
               variants={fadeUp}
               custom={4}
-              className="mt-8 flex flex-col gap-4 sm:flex-row"
+              className="mt-8 flex flex-col gap-3 sm:gap-4 sm:flex-row"
             >
               <Link
                 href="/signup"
-                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#6200EE] px-7 py-4 text-base font-bold text-white shadow-xl shadow-[#6200EE]/20 transition hover:translate-y-[-2px] hover:bg-[#4F2EE8]"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#6200EE] px-5 sm:px-7 py-3 sm:py-4 text-sm sm:text-base font-bold text-white shadow-xl shadow-[#6200EE]/20 transition hover:translate-y-[-2px] hover:bg-[#4F2EE8]"
               >
                 Create Account
                 <ArrowRight className="h-4 w-4" />
@@ -207,7 +337,7 @@ export default function HomePage() {
 
               <a
                 href="#services"
-                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-[#E9E4FF] bg-white px-7 py-4 text-base font-bold text-[#0B0E11] transition hover:border-[#6200EE]/40 hover:bg-[#F8F5FF]"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-[#E9E4FF] bg-white px-5 sm:px-7 py-3 sm:py-4 text-sm sm:text-base font-bold text-[#0B0E11] transition hover:border-[#6200EE]/40 hover:bg-[#F8F5FF]"
               >
                 Explore Services
               </a>
