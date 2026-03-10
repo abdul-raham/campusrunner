@@ -2,132 +2,216 @@
 
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 
 export default function AnimatedLoader({ onComplete }: { onComplete: () => void }) {
   const [stage, setStage] = useState(0);
 
   useEffect(() => {
-    const timer1 = setTimeout(() => setStage(1), 800);
-    const timer2 = setTimeout(() => setStage(2), 1600);
-    const timer3 = setTimeout(() => onComplete(), 2400);
+    const timer1 = setTimeout(() => setStage(1), 600);
+    const timer2 = setTimeout(() => setStage(2), 1200);
+    const timer3 = setTimeout(() => setStage(3), 1800);
+    const timer4 = setTimeout(() => onComplete(), 2800);
     
     return () => {
       clearTimeout(timer1);
       clearTimeout(timer2);
       clearTimeout(timer3);
+      clearTimeout(timer4);
     };
   }, [onComplete]);
 
   return (
     <motion.div
       initial={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
+      exit={{ opacity: 0, scale: 1.1 }}
+      transition={{ duration: 0.5 }}
       className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-[#6200EE] via-[#4F2EE8] to-[#03DAC5]"
     >
       <div className="relative">
-        {/* Logo Parts */}
-        <div className="relative h-24 w-24">
-          {/* Main Circle */}
+        {/* Particle System */}
+        {Array.from({ length: 12 }).map((_, i) => (
           <motion.div
-            initial={{ scale: 0, rotate: -180 }}
-            animate={{ 
-              scale: stage >= 0 ? 1 : 0,
-              rotate: stage >= 1 ? 0 : -180,
+            key={i}
+            initial={{ 
+              scale: 0,
+              x: 0,
+              y: 0,
+              opacity: 0
             }}
-            transition={{ 
-              duration: 0.8,
-              type: "spring",
-              stiffness: 100,
-              damping: 10
-            }}
-            className="absolute inset-0 rounded-full bg-white shadow-2xl"
-          />
-          
-          {/* Inner Elements - Split and Morph */}
-          <motion.div
-            initial={{ x: 0, y: 0, scale: 0 }}
             animate={{
-              x: stage === 1 ? [-20, 20, 0] : 0,
-              y: stage === 1 ? [20, -20, 0] : 0,
-              scale: stage >= 0 ? 1 : 0,
-              rotate: stage === 1 ? [0, 360, 0] : 0,
+              scale: stage >= 1 ? 0.8 : 0,
+              x: stage >= 1 ? Math.cos((i * 30 * Math.PI) / 180) * 200 : 0,
+              y: stage >= 1 ? Math.sin((i * 30 * Math.PI) / 180) * 200 : 0,
+              opacity: stage >= 1 ? 0.4 : 0,
             }}
             transition={{
-              duration: stage === 1 ? 0.8 : 0.6,
-              type: "spring",
-              stiffness: 120,
-              damping: 8
+              duration: 2,
+              delay: i * 0.05,
+              ease: "easeOut"
             }}
-            className="absolute left-1/2 top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#6200EE]"
+            className="absolute left-1/2 top-1/2 h-1 w-1 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white"
           />
-          
-          {/* Orbiting Elements */}
-          {[0, 120, 240].map((angle, i) => (
+        ))}
+
+        {/* Logo Container */}
+        <div className="relative h-20 w-20">
+          {/* Background Morphing Shape */}
+          <motion.div
+            initial={{ 
+              scale: 0,
+              borderRadius: "50%",
+              rotate: 0
+            }}
+            animate={{
+              scale: stage >= 0 ? 1 : 0,
+              borderRadius: stage === 1 ? "20%" : "50%",
+              rotate: stage >= 1 ? 360 : 0,
+            }}
+            transition={{
+              scale: { duration: 0.6, type: "spring", stiffness: 200 },
+              borderRadius: { duration: 1.2, ease: "easeInOut" },
+              rotate: { duration: 1.5, ease: "easeInOut" }
+            }}
+            className="absolute inset-0 bg-white shadow-2xl"
+          />
+
+          {/* Logo Image with Effects */}
+          <motion.div
+            initial={{ 
+              scale: 0,
+              rotate: -180,
+              filter: "blur(10px)"
+            }}
+            animate={{
+              scale: stage >= 0 ? 1 : 0,
+              rotate: stage >= 1 ? 360 : 0,
+              filter: stage >= 0 ? "blur(0px)" : "blur(10px)",
+              x: stage === 2 ? 3 : 0,
+              y: stage === 2 ? -3 : 0,
+            }}
+            transition={{
+              scale: { duration: 0.8, type: "spring", stiffness: 150 },
+              rotate: { duration: 2, ease: "easeInOut" },
+              filter: { duration: 0.6 },
+              x: { duration: 0.6, ease: "easeInOut" },
+              y: { duration: 0.6, ease: "easeInOut" }
+            }}
+            className="absolute inset-2 flex items-center justify-center"
+          >
+            <Image 
+              src="/logo.png" 
+              alt="CampusRunner" 
+              width={48} 
+              height={48} 
+              className="rounded-lg"
+            />
+          </motion.div>
+
+          {/* Energy Rings */}
+          {[1, 2, 3].map((ring) => (
             <motion.div
-              key={i}
+              key={ring}
               initial={{ 
                 scale: 0,
-                x: 0,
-                y: 0,
+                opacity: 0,
+                rotate: 0
               }}
               animate={{
-                scale: stage >= 0 ? 1 : 0,
-                x: stage >= 1 ? Math.cos((angle * Math.PI) / 180) * 30 : 0,
-                y: stage >= 1 ? Math.sin((angle * Math.PI) / 180) * 30 : 0,
-                rotate: stage >= 1 ? 360 : 0,
+                scale: stage >= 1 ? 2 + ring * 0.5 : 0,
+                opacity: stage >= 1 ? 0 : 0,
+                rotate: stage >= 1 ? 360 * ring : 0,
               }}
               transition={{
-                duration: 0.8,
-                delay: i * 0.1,
-                type: "spring",
-                stiffness: 100,
-                damping: 10
+                duration: 1.5,
+                delay: ring * 0.1,
+                repeat: stage >= 1 ? Infinity : 0,
+                repeatDelay: 0.5,
+                ease: "easeOut"
               }}
-              className="absolute left-1/2 top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#03DAC5]"
+              className="absolute inset-0 rounded-full border-2 border-white/30"
             />
           ))}
         </div>
 
-        {/* Text Animation */}
+        {/* Dynamic Text */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 30, scale: 0.8 }}
           animate={{ 
-            opacity: stage >= 2 ? 1 : 0,
-            y: stage >= 2 ? 0 : 20,
+            opacity: stage >= 3 ? 1 : 0,
+            y: stage >= 3 ? 0 : 30,
+            scale: stage >= 3 ? 1 : 0.8,
           }}
-          transition={{ duration: 0.6, type: "spring" }}
-          className="mt-6 text-center"
+          transition={{ 
+            duration: 0.8, 
+            type: "spring",
+            stiffness: 150,
+            damping: 12
+          }}
+          className="mt-8 text-center"
         >
           <motion.h1
-            initial={{ letterSpacing: "0.5em" }}
-            animate={{ letterSpacing: stage >= 2 ? "0.1em" : "0.5em" }}
-            transition={{ duration: 0.8 }}
+            initial={{ 
+              letterSpacing: "0.8em",
+              opacity: 0
+            }}
+            animate={{ 
+              letterSpacing: stage >= 3 ? "0.05em" : "0.8em",
+              opacity: stage >= 3 ? 1 : 0,
+            }}
+            transition={{ 
+              duration: 1.2,
+              ease: "easeOut"
+            }}
             className="text-2xl font-black text-white"
           >
             CampusRunner
           </motion.h1>
+          
+          <motion.div
+            initial={{ width: 0, opacity: 0 }}
+            animate={{ 
+              width: stage >= 3 ? "100%" : 0,
+              opacity: stage >= 3 ? 1 : 0,
+            }}
+            transition={{ 
+              duration: 0.8,
+              delay: 0.3,
+              ease: "easeOut"
+            }}
+            className="mx-auto mt-2 h-0.5 bg-gradient-to-r from-transparent via-white to-transparent"
+          />
+          
           <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: stage >= 2 ? 0.8 : 0 }}
-            transition={{ delay: 0.3, duration: 0.5 }}
-            className="mt-1 text-sm text-white/80"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ 
+              opacity: stage >= 3 ? 0.9 : 0,
+              y: stage >= 3 ? 0 : 10,
+            }}
+            transition={{ 
+              delay: 0.6, 
+              duration: 0.6,
+              ease: "easeOut"
+            }}
+            className="mt-3 text-sm font-medium text-white/90"
           >
-            Loading your campus experience...
+            Initializing your campus experience
           </motion.p>
         </motion.div>
 
-        {/* Pulse Effect */}
+        {/* Ambient Glow */}
         <motion.div
           animate={{
-            scale: [1, 1.2, 1],
-            opacity: [0.3, 0.1, 0.3],
+            scale: [1, 1.3],
+            opacity: [0.1, 0.3],
           }}
           transition={{
-            duration: 2,
+            duration: 3,
             repeat: Infinity,
+            repeatType: "reverse",
             ease: "easeInOut"
           }}
-          className="absolute inset-0 rounded-full bg-white"
+          className="absolute inset-0 -m-10 rounded-full bg-white blur-xl"
         />
       </div>
     </motion.div>
