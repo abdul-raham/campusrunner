@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Eye, EyeOff, Mail, Lock, ArrowRight, Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/src/supabase/client';
+import { supabase } from '@/supabase/client';
 
 export function LoginFormComponent() {
   const [email, setEmail] = useState('');
