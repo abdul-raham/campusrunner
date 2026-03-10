@@ -1,6 +1,8 @@
 import { Metadata } from 'next';
 import { MapPin, Clock, DollarSign, Filter, Search } from 'lucide-react';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Available Jobs - CampusRunner',
   description: 'Browse all available jobs near you',

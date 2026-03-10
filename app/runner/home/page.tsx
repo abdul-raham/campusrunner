@@ -1,6 +1,8 @@
 import { Metadata } from 'next';
 import { Briefcase, TrendingUp, Star, Wallet, AlertCircle, Clock, MapPin, DollarSign } from 'lucide-react';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Runner Dashboard - CampusRunner',
   description: 'Manage your runner jobs and earnings',

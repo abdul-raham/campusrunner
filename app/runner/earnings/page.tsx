@@ -1,6 +1,8 @@
 import { Metadata } from 'next';
 import { TrendingUp, DollarSign, Calendar, ArrowUpRight } from 'lucide-react';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Earnings - CampusRunner',
   description: 'View your earnings and transaction history',

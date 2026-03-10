@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Eye, EyeOff, Mail, Lock, ArrowRight, Sparkles } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export function LoginFormComponent() {
   const [email, setEmail] = useState('');
@@ -12,11 +13,18 @@ export function LoginFormComponent() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setTimeout(() => setIsLoading(false), 1500);
+    
+    // Simulate login process
+    setTimeout(() => {
+      setIsLoading(false);
+      // Redirect to student dashboard after successful login
+      router.push('/student/dashboard');
+    }, 1500);
   };
 
   return (
@@ -26,7 +34,6 @@ export function LoginFormComponent() {
       transition={{ duration: 0.6 }}
       className="space-y-8"
     >
-      {/* Header */}
       <div className="text-center space-y-4">
         <motion.div 
           initial={{ scale: 0, rotate: -180 }}
@@ -51,7 +58,6 @@ export function LoginFormComponent() {
         </motion.div>
       </div>
 
-      {/* Form */}
       <motion.form 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -59,7 +65,6 @@ export function LoginFormComponent() {
         onSubmit={handleSubmit}
         className="space-y-6"
       >
-        {/* Email Field */}
         <div className="space-y-2">
           <label className="text-sm font-black uppercase tracking-wider text-[#374151] flex items-center gap-2">
             <Mail className="h-4 w-4" />
@@ -89,7 +94,6 @@ export function LoginFormComponent() {
           </div>
         </div>
 
-        {/* Password Field */}
         <div className="space-y-2">
           <label className="text-sm font-black uppercase tracking-wider text-[#374151] flex items-center gap-2">
             <Lock className="h-4 w-4" />
@@ -126,7 +130,6 @@ export function LoginFormComponent() {
           </div>
         </div>
 
-        {/* Remember & Forgot */}
         <div className="flex items-center justify-between">
           <motion.label 
             whileHover={{ scale: 1.02 }}
@@ -154,7 +157,6 @@ export function LoginFormComponent() {
           </Link>
         </div>
 
-        {/* Submit Button */}
         <motion.button
           type="submit"
           disabled={isLoading}
@@ -181,7 +183,6 @@ export function LoginFormComponent() {
         </motion.button>
       </motion.form>
 
-      {/* Sign Up Link */}
       <motion.div 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}

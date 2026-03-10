@@ -1,6 +1,8 @@
 import { Metadata } from 'next';
 import { Star, User, Mail, Phone, MapPin, Edit2, Camera, Award } from 'lucide-react';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'My Profile - CampusRunner',
   description: 'View and update your runner profile',

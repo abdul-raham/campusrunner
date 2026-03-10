@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Eye, EyeOff, Mail, Lock, User, GraduationCap, ArrowRight, Sparkles, Phone } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export function StudentSignupForm() {
   const [formData, setFormData] = useState({
@@ -20,11 +21,16 @@ export function StudentSignupForm() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setTimeout(() => setIsLoading(false), 2000);
+    
+    setTimeout(() => {
+      setIsLoading(false);
+      router.push('/student/dashboard');
+    }, 2000);
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -38,7 +44,6 @@ export function StudentSignupForm() {
       transition={{ duration: 0.6 }}
       className="space-y-8"
     >
-      {/* Header */}
       <div className="text-center space-y-4">
         <motion.div 
           initial={{ scale: 0, rotate: -180 }}
@@ -63,7 +68,6 @@ export function StudentSignupForm() {
         </motion.div>
       </div>
 
-      {/* Form */}
       <motion.form 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -71,7 +75,6 @@ export function StudentSignupForm() {
         onSubmit={handleSubmit}
         className="space-y-6"
       >
-        {/* Name Fields */}
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <label className="text-xs font-black uppercase tracking-wider text-[#374151] flex items-center gap-2">
@@ -131,7 +134,6 @@ export function StudentSignupForm() {
           </div>
         </div>
 
-        {/* Email Field */}
         <div className="space-y-2">
           <label className="text-xs font-black uppercase tracking-wider text-[#374151] flex items-center gap-2">
             <Mail className="h-3 w-3" />
@@ -161,7 +163,6 @@ export function StudentSignupForm() {
           </div>
         </div>
 
-        {/* Phone & University */}
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <label className="text-xs font-black uppercase tracking-wider text-[#374151] flex items-center gap-2">
@@ -194,7 +195,6 @@ export function StudentSignupForm() {
           </div>
         </div>
 
-        {/* Password Fields */}
         <div className="space-y-4">
           <div className="space-y-2">
             <label className="text-xs font-black uppercase tracking-wider text-[#374151] flex items-center gap-2">
@@ -256,7 +256,6 @@ export function StudentSignupForm() {
           </div>
         </div>
 
-        {/* Terms Checkbox */}
         <motion.label 
           whileHover={{ scale: 1.01 }}
           className="flex items-start gap-3 cursor-pointer group"
@@ -285,7 +284,6 @@ export function StudentSignupForm() {
           </span>
         </motion.label>
 
-        {/* Submit Button */}
         <motion.button
           type="submit"
           disabled={isLoading}
@@ -312,7 +310,6 @@ export function StudentSignupForm() {
         </motion.button>
       </motion.form>
 
-      {/* Login Link */}
       <motion.div 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
