@@ -41,9 +41,6 @@ export function StudentSignupForm() {
         {
           email: data.email,
           password: data.password,
-        },
-        {
-          emailRedirectTo: undefined,
         }
       );
 

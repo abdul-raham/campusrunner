@@ -41,9 +41,6 @@ export function RunnerSignupForm() {
         {
           email: data.email,
           password: data.password,
-        },
-        {
-          emailRedirectTo: undefined,
         }
       );
 

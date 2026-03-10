@@ -6,8 +6,8 @@ import { useEffect, useState } from 'react';
 
 export default function AuthDebug() {
   const { user, profile, loading, error } = useAuth();
-  const [manualProfile, setManualProfile] = useState(null);
-  const [manualError, setManualError] = useState(null);
+  const [manualProfile, setManualProfile] = useState<any>(null);
+  const [manualError, setManualError] = useState<any>(null);
 
   useEffect(() => {
     const testProfileFetch = async () => {

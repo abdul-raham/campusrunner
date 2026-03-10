@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import MinimalLoader from '@/components/MinimalLoader';
 import { 
   Bell, 
   Search, 
@@ -20,6 +22,7 @@ import {
 
 export default function StudentDashboard() {
   const [activeTab, setActiveTab] = useState('home');
+  const [isLoading, setIsLoading] = useState(true);
 
   const quickActions = [
     { icon: ShoppingCart, label: 'Market Run', color: 'bg-blue-50 text-blue-600' },
@@ -35,8 +38,15 @@ export default function StudentDashboard() {
   ];
 
   return (
+    <>
+      <AnimatePresence>
+        {isLoading && (
+          <MinimalLoader onComplete={() => setIsLoading(false)} />
+        )}
+      </AnimatePresence>
+      
+      {!isLoading && (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
       <div className="bg-white px-4 py-6 shadow-sm">
         <div className="flex items-center justify-between">
           <div>
@@ -55,7 +65,6 @@ export default function StudentDashboard() {
         </div>
       </div>
 
-      {/* Balance Card */}
       <div className="px-4 py-6">
         <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl p-6 text-white">
           <div className="flex items-center justify-between mb-4">
@@ -76,7 +85,6 @@ export default function StudentDashboard() {
         </div>
       </div>
 
-      {/* Search */}
       <div className="px-4 mb-6">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -88,7 +96,6 @@ export default function StudentDashboard() {
         </div>
       </div>
 
-      {/* Quick Actions */}
       <div className="px-4 mb-8">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
         <div className="grid grid-cols-2 gap-3">
@@ -109,7 +116,6 @@ export default function StudentDashboard() {
         </div>
       </div>
 
-      {/* Stats Cards */}
       <div className="px-4 mb-8">
         <div className="grid grid-cols-2 gap-3">
           <div className="bg-white rounded-xl p-4 border border-gray-200">
@@ -131,7 +137,6 @@ export default function StudentDashboard() {
         </div>
       </div>
 
-      {/* Recent Orders */}
       <div className="px-4 mb-8">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-900">Recent Orders</h3>
@@ -176,14 +181,12 @@ export default function StudentDashboard() {
         </div>
       </div>
 
-      {/* New Order Button */}
       <div className="fixed bottom-6 right-4">
         <button className="bg-blue-600 text-white rounded-full p-4 shadow-lg hover:bg-blue-700 transition-colors">
           <Plus className="h-6 w-6" />
         </button>
       </div>
 
-      {/* Bottom Navigation */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-2">
         <div className="flex items-center justify-around">
           {[
@@ -206,5 +209,7 @@ export default function StudentDashboard() {
         </div>
       </div>
     </div>
+      )}
+    </>
   );
 }

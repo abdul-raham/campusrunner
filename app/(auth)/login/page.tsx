@@ -1,10 +1,5 @@
 import { LoginFormComponent } from '@/components/auth/LoginForm';
 
-export const metadata = {
-  title: 'Login - CampusRunner',
-  description: 'Login to your CampusRunner account',
-};
-
 export default function LoginPage() {
   return (
     <main className="min-h-screen bg-[#F6F7FB] text-[#0B0E11]">

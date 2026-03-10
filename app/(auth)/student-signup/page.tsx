@@ -1,10 +1,5 @@
 import { StudentSignupForm } from '@/components/auth/StudentSignupForm';
 
-export const metadata = {
-  title: 'Student Sign Up - CampusRunner',
-  description: 'Create a student account to request campus errands',
-};
-
 export default function StudentSignupPage() {
   return (
     <main className="min-h-screen bg-[#F6F7FB] text-[#0B0E11]">

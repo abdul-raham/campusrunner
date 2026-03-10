@@ -1,10 +1,5 @@
 import { RunnerSignupForm } from '@/components/auth/RunnerSignupForm';
 
-export const metadata = {
-  title: 'Runner Sign Up - CampusRunner',
-  description: 'Become a runner and start earning money',
-};
-
 export default function RunnerSignupPage() {
   return (
     <main className="min-h-screen bg-[#F6F7FB] text-[#0B0E11]">

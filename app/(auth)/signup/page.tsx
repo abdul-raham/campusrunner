@@ -15,7 +15,6 @@ export default function SignupChoicePage() {
 
       <div className="relative flex min-h-screen flex-col items-center justify-center px-4 py-12">
         <div className="w-full max-w-2xl">
-          {/* Header */}
           <div className="mb-12 text-center">
             <div className="mb-4 flex items-center justify-center gap-3">
               <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white shadow-lg">
@@ -31,9 +30,7 @@ export default function SignupChoicePage() {
             </p>
           </div>
 
-          {/* Choice Cards */}
           <div className="mb-8 grid gap-6 md:grid-cols-2">
-            {/* Student Card */}
             <Link href="/student-signup">
               <div className="group cursor-pointer rounded-[28px] border border-[#E9E4FF] bg-white/70 p-8 shadow-lg backdrop-blur transition duration-300 hover:-translate-y-2 hover:shadow-xl">
                 <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#EEF8FF]">
@@ -60,7 +57,6 @@ export default function SignupChoicePage() {
               </div>
             </Link>
 
-            {/* Runner Card */}
             <Link href="/runner-signup">
               <div className="group cursor-pointer rounded-[28px] border border-[#E9E4FF] bg-white/70 p-8 shadow-lg backdrop-blur transition duration-300 hover:-translate-y-2 hover:shadow-xl">
                 <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#F4ECFF]">
@@ -88,7 +84,6 @@ export default function SignupChoicePage() {
             </Link>
           </div>
 
-          {/* Login Link */}
           <div className="text-center">
             <p className="text-[#6B7280]">
               Already have an account?{' '}
@@ -98,7 +93,6 @@ export default function SignupChoicePage() {
             </p>
           </div>
 
-          {/* Feature Highlights */}
           <div className="mt-12 grid grid-cols-3 gap-4 rounded-[28px] border border-white/60 bg-white/70 p-6 text-center shadow-lg backdrop-blur">
             <div>
               <p className="text-2xl font-black text-[#6200EE]">500+</p>
