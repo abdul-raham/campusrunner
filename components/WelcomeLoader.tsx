@@ -6,6 +6,17 @@ import Image from 'next/image';
 
 export default function WelcomeLoader({ onComplete }: { onComplete: () => void }) {
   const [stage, setStage] = useState(0);
+  
+  // Predefined positions to avoid hydration mismatch
+  const starPositions = [
+    { left: 15, top: 25 }, { left: 85, top: 15 }, { left: 75, top: 80 },
+    { left: 25, top: 70 }, { left: 90, top: 45 }, { left: 10, top: 60 },
+    { left: 60, top: 20 }, { left: 40, top: 85 }, { left: 95, top: 75 },
+    { left: 5, top: 40 }, { left: 70, top: 55 }, { left: 30, top: 10 },
+    { left: 80, top: 65 }, { left: 20, top: 90 }, { left: 65, top: 35 },
+    { left: 45, top: 5 }, { left: 35, top: 50 }, { left: 55, top: 75 },
+    { left: 12, top: 30 }, { left: 88, top: 85 }
+  ];
 
   useEffect(() => {
     const timer1 = setTimeout(() => setStage(1), 800);
@@ -46,8 +57,8 @@ export default function WelcomeLoader({ onComplete }: { onComplete: () => void }
             }}
             className="absolute h-2 w-2 rounded-full bg-white"
             style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
+              left: `${starPositions[i].left}%`,
+              top: `${starPositions[i].top}%`,
             }}
           />
         ))}
