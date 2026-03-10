@@ -1,4 +1,4 @@
-import { RunnerSignupForm } from '@/components/auth/RunnerSignupForm';
+import { SignupForm } from '@/components/auth/SignupForm';
 
 export default function RunnerSignupPage() {
   return (
@@ -11,7 +11,7 @@ export default function RunnerSignupPage() {
       
       <div className="relative flex min-h-screen items-center justify-center px-4 py-8">
         <div className="w-full max-w-md rounded-[28px] border border-white/60 bg-white/70 p-8 shadow-2xl shadow-[#6200EE]/10 backdrop-blur-xl">
-          <RunnerSignupForm />
+          <SignupForm userType="runner" />
         </div>
       </div>
     </main>

@@ -4,13 +4,21 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { Eye, EyeOff, Mail, Lock, ArrowRight, Sparkles } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User, ArrowRight, Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/src/supabase/client';
 
-export function LoginFormComponent() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+interface SignupFormProps {
+  userType: 'student' | 'runner';
+}
+
+export function SignupForm({ userType }: SignupFormProps) {
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    fullName: '',
+    phone: '',
+  });
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -23,9 +31,16 @@ export function LoginFormComponent() {
     setError('');
     
     try {
-      const { data, error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      const { data, error: authError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
+            full_name: formData.fullName,
+            phone: formData.phone,
+            role: userType,
+          }
+        }
       });
 
       if (authError) {
@@ -34,28 +49,34 @@ export function LoginFormComponent() {
       }
 
       if (data.user) {
-        // Get user profile to determine role
-        const { data: profile } = await supabase
+        // Create profile
+        const { error: profileError } = await supabase
           .from('profiles')
-          .select('role')
-          .eq('id', data.user.id)
-          .single();
+          .insert({
+            id: data.user.id,
+            email: formData.email,
+            full_name: formData.fullName,
+            phone: formData.phone,
+            role: userType,
+          });
 
-        // Redirect based on role
-        const role = profile?.role || 'student';
-        if (role === 'student') {
-          router.push('/student/dashboard');
-        } else if (role === 'runner') {
-          router.push('/runner/dashboard');
-        } else {
-          router.push('/admin/dashboard');
+        if (profileError) {
+          setError('Failed to create profile');
+          return;
         }
+
+        // Redirect to appropriate dashboard
+        router.push(`/${userType}/dashboard`);
       }
     } catch (err) {
       setError('An unexpected error occurred');
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   return (
@@ -81,10 +102,13 @@ export function LoginFormComponent() {
           transition={{ delay: 0.3 }}
         >
           <h1 className="text-3xl font-black tracking-tight bg-gradient-to-r from-[#6200EE] to-[#03DAC5] bg-clip-text text-transparent mb-2">
-            Welcome back
+            Join as {userType === 'student' ? 'Student' : 'Runner'}
           </h1>
           <p className="text-base text-[#6B7280] font-medium">
-            Sign in to continue your campus journey
+            {userType === 'student' 
+              ? 'Request errands from trusted campus runners'
+              : 'Earn money by helping fellow students'
+            }
           </p>
         </motion.div>
       </div>
@@ -105,6 +129,36 @@ export function LoginFormComponent() {
             {error}
           </motion.div>
         )}
+
+        <div className="space-y-2">
+          <label className="text-sm font-black uppercase tracking-wider text-[#374151] flex items-center gap-2">
+            <User className="h-4 w-4" />
+            Full Name
+          </label>
+          <div className="relative group">
+            <input
+              type="text"
+              value={formData.fullName}
+              onChange={(e) => handleInputChange('fullName', e.target.value)}
+              onFocus={() => setFocusedField('fullName')}
+              onBlur={() => setFocusedField(null)}
+              className="w-full rounded-2xl border-2 border-[#E5E7EB] bg-white/80 py-4 px-5 text-sm font-medium backdrop-blur transition-all duration-300 focus:border-[#6200EE] focus:bg-white focus:outline-none focus:shadow-lg focus:shadow-[#6200EE]/10"
+              placeholder="Enter your full name"
+              required
+            />
+            <motion.div
+              initial={false}
+              animate={{
+                scale: focusedField === 'fullName' ? 1 : 0,
+                opacity: focusedField === 'fullName' ? 1 : 0,
+              }}
+              className="absolute -right-2 -top-2 h-4 w-4 rounded-full bg-gradient-to-r from-[#6200EE] to-[#03DAC5] flex items-center justify-center"
+            >
+              <Sparkles className="h-2 w-2 text-white" />
+            </motion.div>
+          </div>
+        </div>
+
         <div className="space-y-2">
           <label className="text-sm font-black uppercase tracking-wider text-[#374151] flex items-center gap-2">
             <Mail className="h-4 w-4" />
@@ -113,8 +167,8 @@ export function LoginFormComponent() {
           <div className="relative group">
             <input
               type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={formData.email}
+              onChange={(e) => handleInputChange('email', e.target.value)}
               onFocus={() => setFocusedField('email')}
               onBlur={() => setFocusedField(null)}
               className="w-full rounded-2xl border-2 border-[#E5E7EB] bg-white/80 py-4 px-5 text-sm font-medium backdrop-blur transition-all duration-300 focus:border-[#6200EE] focus:bg-white focus:outline-none focus:shadow-lg focus:shadow-[#6200EE]/10"
@@ -142,12 +196,12 @@ export function LoginFormComponent() {
           <div className="relative group">
             <input
               type={showPassword ? 'text' : 'password'}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              value={formData.password}
+              onChange={(e) => handleInputChange('password', e.target.value)}
               onFocus={() => setFocusedField('password')}
               onBlur={() => setFocusedField(null)}
               className="w-full rounded-2xl border-2 border-[#E5E7EB] bg-white/80 py-4 px-5 pr-12 text-sm font-medium backdrop-blur transition-all duration-300 focus:border-[#6200EE] focus:bg-white focus:outline-none focus:shadow-lg focus:shadow-[#6200EE]/10"
-              placeholder="Enter your secure password"
+              placeholder="Create a secure password"
               required
             />
             <button
@@ -170,33 +224,6 @@ export function LoginFormComponent() {
           </div>
         </div>
 
-        <div className="flex items-center justify-between">
-          <motion.label 
-            whileHover={{ scale: 1.02 }}
-            className="flex items-center gap-2 cursor-pointer group"
-          >
-            <div className="relative">
-              <input 
-                type="checkbox" 
-                className="peer sr-only" 
-              />
-              <div className="h-5 w-5 rounded-lg border-2 border-[#E5E7EB] bg-white transition-all peer-checked:border-[#6200EE] peer-checked:bg-[#6200EE] group-hover:border-[#6200EE]/50">
-                <svg className="h-3 w-3 text-white opacity-0 peer-checked:opacity-100 transition-opacity" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
-              </div>
-            </div>
-            <span className="text-sm font-medium text-[#6B7280] group-hover:text-[#374151]">Remember me</span>
-          </motion.label>
-          <Link 
-            href="/forgot-password" 
-            className="text-sm font-bold text-[#6200EE] hover:text-[#4F2EE8] transition-colors relative group"
-          >
-            Forgot password?
-            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-[#6200EE] transition-all group-hover:w-full"></span>
-          </Link>
-        </div>
-
         <motion.button
           type="submit"
           disabled={isLoading}
@@ -214,7 +241,7 @@ export function LoginFormComponent() {
                 />
               ) : (
                 <>
-                  <span>Sign In to CampusRunner</span>
+                  <span>Create {userType === 'student' ? 'Student' : 'Runner'} Account</span>
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </>
               )}
@@ -234,12 +261,12 @@ export function LoginFormComponent() {
         </div>
         <div className="relative bg-white px-4">
           <p className="text-sm text-[#6B7280]">
-            New to CampusRunner?{' '}
+            Already have an account?{' '}
             <Link 
-              href="/signup" 
+              href="/login" 
               className="font-black text-[#6200EE] hover:text-[#4F2EE8] transition-colors relative group"
             >
-              Create your account
+              Sign in here
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-[#6200EE] to-[#03DAC5] transition-all group-hover:w-full"></span>
             </Link>
           </p>

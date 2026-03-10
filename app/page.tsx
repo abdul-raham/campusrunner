@@ -167,111 +167,150 @@ export default function HomePage() {
           </button>
         </div>
 
-        {/* Mobile Menu - Glassmorphic */}
+        {/* Mobile Menu - Enhanced Liquid Glass */}
         <AnimatePresence>
           {mobileMenuOpen && (
             <>
-              {/* Backdrop */}
+              {/* Enhanced Backdrop with Blur */}
               <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
+                initial={{ opacity: 0, backdropFilter: "blur(0px)" }}
+                animate={{ opacity: 1, backdropFilter: "blur(12px)" }}
+                exit={{ opacity: 0, backdropFilter: "blur(0px)" }}
                 onClick={() => setMobileMenuOpen(false)}
-                className="fixed inset-0 top-[68px] z-40 bg-black/20 backdrop-blur-sm md:hidden"
+                className="fixed inset-0 top-[68px] z-40 bg-gradient-to-b from-black/10 via-black/20 to-black/30 md:hidden"
               />
 
-              {/* Menu */}
+              {/* Enhanced Liquid Glass Menu */}
               <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.3, ease: 'easeOut' }}
-                className="absolute left-0 right-0 top-[68px] z-50 border-b border-white/30 bg-white/80 backdrop-blur-2xl md:hidden"
+                initial={{ opacity: 0, y: -30, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -30, scale: 0.95 }}
+                transition={{ 
+                  duration: 0.4, 
+                  ease: [0.25, 0.46, 0.45, 0.94],
+                  type: "spring",
+                  stiffness: 300,
+                  damping: 30
+                }}
+                className="absolute left-4 right-4 top-[76px] z-50 overflow-hidden rounded-[28px] border border-white/40 bg-white/85 shadow-2xl shadow-black/10 backdrop-blur-3xl md:hidden"
+                style={{
+                  background: "linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.8) 50%, rgba(255,255,255,0.85) 100%)",
+                  backdropFilter: "blur(40px) saturate(180%)",
+                  WebkitBackdropFilter: "blur(40px) saturate(180%)"
+                }}
               >
-                <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
-                  {/* Navigation Links */}
-                  <div className="mb-6 space-y-2">
-                    <motion.a 
-                      href="#features"
-                      onClick={() => setMobileMenuOpen(false)}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.05 }}
-                      className="flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold text-[#0B0E11] transition hover:bg-[#F4ECFF] hover:text-[#6200EE]"
-                    >
-                      <Lightbulb className="h-5 w-5" />
-                      <span>Features</span>
-                    </motion.a>
+                {/* Gradient Overlay for Glass Effect */}
+                <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-purple-500/5 pointer-events-none" />
+                
+                <div className="relative px-6 py-8">
+                  {/* Header with Enhanced Styling */}
+                  <motion.div 
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 }}
+                    className="mb-8 text-center"
+                  >
+                    <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-[#6200EE]/10 to-[#03DAC5]/10 backdrop-blur-sm">
+                      <Sparkles className="h-6 w-6 text-[#6200EE]" />
+                    </div>
+                    <h3 className="text-lg font-black text-[#0B0E11]">Navigation</h3>
+                    <p className="text-sm text-[#6B7280]/80">Explore CampusRunner</p>
+                  </motion.div>
 
-                    <motion.a 
-                      href="#services"
-                      onClick={() => setMobileMenuOpen(false)}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.1 }}
-                      className="flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold text-[#0B0E11] transition hover:bg-[#F4ECFF] hover:text-[#6200EE]"
-                    >
-                      <Sparkles className="h-5 w-5" />
-                      <span>Services</span>
-                    </motion.a>
-
-                    <motion.a 
-                      href="#how-it-works"
-                      onClick={() => setMobileMenuOpen(false)}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.15 }}
-                      className="flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold text-[#0B0E11] transition hover:bg-[#F4ECFF] hover:text-[#6200EE]"
-                    >
-                      <Cog className="h-5 w-5" />
-                      <span>How it works</span>
-                    </motion.a>
+                  {/* Enhanced Navigation Links */}
+                  <div className="mb-8 space-y-2">
+                    {[
+                      { href: "#features", icon: Lightbulb, label: "Features", desc: "What makes us special" },
+                      { href: "#services", icon: Sparkles, label: "Services", desc: "Campus errands available" },
+                      { href: "#how-it-works", icon: Cog, label: "How it works", desc: "Simple 3-step process" }
+                    ].map((item, index) => (
+                      <motion.a 
+                        key={item.href}
+                        href={item.href}
+                        onClick={() => setMobileMenuOpen(false)}
+                        initial={{ opacity: 0, x: -30 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.15 + (index * 0.05) }}
+                        className="group flex items-center gap-4 rounded-2xl border border-white/30 bg-white/40 p-4 backdrop-blur-sm transition-all duration-300 hover:border-[#6200EE]/30 hover:bg-white/60 hover:shadow-lg hover:shadow-[#6200EE]/10 active:scale-[0.98]"
+                      >
+                        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-[#6200EE]/10 to-[#03DAC5]/10 transition-all duration-300 group-hover:from-[#6200EE]/20 group-hover:to-[#03DAC5]/20">
+                          <item.icon className="h-5 w-5 text-[#6200EE] transition-transform duration-300 group-hover:scale-110" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-bold text-[#0B0E11] transition-colors duration-300 group-hover:text-[#6200EE]">
+                            {item.label}
+                          </p>
+                          <p className="text-xs text-[#6B7280]/70">{item.desc}</p>
+                        </div>
+                        <ArrowRight className="h-4 w-4 text-[#6B7280]/50 transition-all duration-300 group-hover:translate-x-1 group-hover:text-[#6200EE]" />
+                      </motion.a>
+                    ))}
                   </div>
 
-                  {/* Divider */}
-                  <div className="my-4 h-px bg-gradient-to-r from-[#E9E4FF]/0 via-[#E9E4FF] to-[#E9E4FF]/0" />
+                  {/* Enhanced Divider */}
+                  <motion.div 
+                    initial={{ scaleX: 0 }}
+                    animate={{ scaleX: 1 }}
+                    transition={{ delay: 0.3, duration: 0.4 }}
+                    className="my-6 h-px bg-gradient-to-r from-transparent via-[#6200EE]/20 to-transparent"
+                  />
 
-                  {/* Action Buttons */}
-                  <div className="space-y-2">
+                  {/* Enhanced Action Buttons */}
+                  <div className="space-y-3">
                     <motion.div
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.2 }}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.35 }}
                     >
                       <Link
                         href="/login"
                         onClick={() => setMobileMenuOpen(false)}
-                        className="flex items-center justify-center gap-2 rounded-2xl border border-[#E9E4FF] bg-white px-5 py-3 text-sm font-semibold text-[#6200EE] transition hover:bg-[#F8F5FF] hover:border-[#6200EE]/40 hover:shadow-lg"
+                        className="group flex w-full items-center justify-center gap-3 rounded-2xl border border-white/40 bg-white/50 px-6 py-4 font-bold text-[#6200EE] backdrop-blur-sm transition-all duration-300 hover:border-[#6200EE]/40 hover:bg-white/70 hover:shadow-lg hover:shadow-[#6200EE]/10 active:scale-[0.98]"
                       >
-                        <LogIn className="h-4 w-4" />
-                        Login
+                        <LogIn className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
+                        <span>Login to Account</span>
                       </Link>
                     </motion.div>
 
                     <motion.div
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.25 }}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.4 }}
                     >
                       <Link
                         href="/signup"
                         onClick={() => setMobileMenuOpen(false)}
-                        className="flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#6200EE] to-[#4F2EE8] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-[#6200EE]/20 transition hover:shadow-xl hover:shadow-[#6200EE]/30"
+                        className="group flex w-full items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-[#6200EE] to-[#4F2EE8] px-6 py-4 font-bold text-white shadow-xl shadow-[#6200EE]/25 transition-all duration-300 hover:shadow-2xl hover:shadow-[#6200EE]/35 active:scale-[0.98]"
+                        style={{
+                          background: "linear-gradient(135deg, #6200EE 0%, #4F2EE8 50%, #03DAC5 100%)"
+                        }}
                       >
-                        <Sparkles className="h-4 w-4" />
-                        Get Started
+                        <Sparkles className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
+                        <span>Get Started Free</span>
+                        <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
                       </Link>
                     </motion.div>
                   </div>
 
-                  {/* Info Message */}
+                  {/* Enhanced Info Card */}
                   <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.3 }}
-                    className="mt-6 rounded-2xl border border-[#E9E4FF] bg-white/50 p-3 text-center text-xs text-[#6B7280]"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.45 }}
+                    className="mt-8 rounded-2xl border border-white/30 bg-gradient-to-br from-white/40 to-white/20 p-4 backdrop-blur-sm"
                   >
-                    ✨ Campus errands, beautifully simple
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#03DAC5]/20 to-[#6200EE]/20">
+                        <ShieldCheck className="h-5 w-5 text-[#03DAC5]" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-bold text-[#0B0E11]">Trusted Platform</p>
+                        <p className="text-xs text-[#6B7280]/70">Campus errands, beautifully simple</p>
+                      </div>
+                      <div className="rounded-lg bg-[#E6FFF9] px-2 py-1">
+                        <span className="text-xs font-bold text-[#03A894]">✨ NEW</span>
+                      </div>
+                    </div>
                   </motion.div>
                 </div>
               </motion.div>
