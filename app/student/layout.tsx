@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Home, Package, CreditCard, Bell, User, Settings, LogOut, Menu, X } from 'lucide-react';
 import Image from 'next/image';
+import { MobileNavbar } from '@/components/MobileNavbar';
 
 export default function StudentLayout({
   children,
@@ -24,7 +25,7 @@ export default function StudentLayout({
   // Show layout immediately if user exists, even if profile is still loading
   if (loading && !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC]">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="w-8 h-8 border-4 border-[#6200EE] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-600">Loading...</p>
@@ -52,29 +53,28 @@ export default function StudentLayout({
   };
 
   return (
-    <div className="flex h-screen bg-[#F8FAFC]">
-      {/* Sidebar */}
-      <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${
-          isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
-      >
-        <div className="h-full flex flex-col">
+    <div className="flex h-screen">
+      {/* Mobile Navbar */}
+      <MobileNavbar 
+        userRole="student" 
+        userName={profile?.full_name || 'Student'}
+      />
+
+      {/* Desktop Sidebar */}
+      <aside className="hidden md:flex w-64 glass border-r border-white/20 shadow-2xl">
+        <div className="h-full flex flex-col w-full">
           {/* Header */}
-          <div className="p-6 border-b border-gray-100">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-xl bg-white shadow-md flex items-center justify-center">
-                  <Image src="/logo.png" alt="CampusRunner" width={20} height={20} className="rounded-lg" />
-                </div>
-                <div>
-                  <p className="font-bold text-gray-900">CampusRunner</p>
-                  <p className="text-xs text-gray-500">Student Portal</p>
+          <div className="p-6 border-b border-white/10">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#6200EE] to-[#03DAC5] p-0.5 shadow-lg">
+                <div className="w-full h-full rounded-2xl bg-white flex items-center justify-center">
+                  <Image src="/logo.png" alt="CampusRunner" width={24} height={24} className="rounded-lg" />
                 </div>
               </div>
-              <button className="md:hidden" onClick={() => setIsSidebarOpen(false)}>
-                <X className="w-5 h-5 text-gray-500" />
-              </button>
+              <div>
+                <p className="font-black text-[#0B0E11]">CampusRunner</p>
+                <p className="text-xs text-[#6B7280]">Student Portal</p>
+              </div>
             </div>
           </div>
 
@@ -86,10 +86,11 @@ export default function StudentLayout({
                 <a
                   key={item.href}
                   href={item.href}
-                  className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-[#6200EE]/10 hover:text-[#6200EE] transition-all font-medium"
-                  onClick={() => setIsSidebarOpen(false)}
+                  className="group flex items-center gap-3 px-4 py-3 rounded-2xl text-[#374151] hover:bg-white/50 hover:text-[#6200EE] transition-all font-semibold backdrop-blur-sm"
                 >
-                  <Icon className="w-5 h-5" />
+                  <div className="p-2 rounded-xl bg-gray-100 group-hover:bg-[#6200EE]/10 group-hover:text-[#6200EE] transition-all">
+                    <Icon className="w-4 h-4" />
+                  </div>
                   {item.label}
                 </a>
               );
@@ -97,16 +98,20 @@ export default function StudentLayout({
           </nav>
 
           {/* Footer */}
-          <div className="p-4 border-t border-gray-100 space-y-2">
-            <button className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 rounded-xl hover:bg-gray-100 transition-colors font-medium">
-              <Settings className="w-5 h-5" />
+          <div className="p-4 border-t border-white/10 space-y-2">
+            <button className="w-full flex items-center gap-3 px-4 py-3 text-[#374151] rounded-2xl hover:bg-white/50 transition-all font-semibold">
+              <div className="p-2 rounded-xl bg-gray-100">
+                <Settings className="w-4 h-4" />
+              </div>
               Settings
             </button>
             <button
               onClick={handleLogout}
-              className="w-full flex items-center gap-3 px-4 py-3 text-red-600 rounded-xl hover:bg-red-50 transition-colors font-medium"
+              className="w-full flex items-center gap-3 px-4 py-3 text-red-600 rounded-2xl hover:bg-red-50 transition-all font-semibold"
             >
-              <LogOut className="w-5 h-5" />
+              <div className="p-2 rounded-xl bg-red-100">
+                <LogOut className="w-4 h-4" />
+              </div>
               Logout
             </button>
           </div>
@@ -114,38 +119,9 @@ export default function StudentLayout({
       </aside>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Mobile Header */}
-        <header className="bg-white border-b border-gray-200 md:hidden">
-          <div className="flex items-center justify-between px-4 py-4">
-            <button onClick={() => setIsSidebarOpen(true)}>
-              <Menu className="w-6 h-6 text-gray-700" />
-            </button>
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-xl bg-white shadow-md flex items-center justify-center">
-                <Image src="/logo.png" alt="CampusRunner" width={20} height={20} className="rounded-lg" />
-              </div>
-              <span className="font-bold text-gray-900">CampusRunner</span>
-            </div>
-            <div className="w-8 h-8 bg-[#6200EE] rounded-full flex items-center justify-center text-white font-semibold text-sm">
-              {profile?.full_name?.charAt(0) || user?.email?.charAt(0)?.toUpperCase() || 'U'}
-            </div>
-          </div>
-        </header>
-
-        {/* Page Content */}
-        <main className="flex-1 overflow-auto">
-          {children}
-        </main>
-      </div>
-
-      {/* Mobile overlay */}
-      {isSidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
-          onClick={() => setIsSidebarOpen(false)}
-        ></div>
-      )}
+      <main className="flex-1 overflow-auto">
+        {children}
+      </main>
     </div>
   );
 }

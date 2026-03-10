@@ -45,13 +45,54 @@
   }
 
   body {
-    background-color: hsl(var(--background));
+    background: linear-gradient(135deg, 
+      #f8fafc 0%, 
+      #e2e8f0 25%, 
+      #f1f5f9 50%, 
+      #e8f4f8 75%, 
+      #f0f9ff 100%);
+    background-attachment: fixed;
+    background-size: 400% 400%;
+    animation: gradientShift 15s ease infinite;
     color: hsl(var(--foreground));
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
       'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
       sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
+    position: relative;
+  }
+
+  /* Animated gradient background */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at 20% 80%, rgba(98, 0, 238, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(3, 218, 197, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(98, 0, 238, 0.05) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  /* Floating orbs */
+  body::after {
+    content: '';
+    position: fixed;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: 
+      radial-gradient(circle at 25% 25%, rgba(98, 0, 238, 0.03) 0%, transparent 25%),
+      radial-gradient(circle at 75% 75%, rgba(3, 218, 197, 0.03) 0%, transparent 25%);
+    animation: float 20s ease-in-out infinite;
+    pointer-events: none;
+    z-index: -1;
   }
 
   code {
@@ -66,11 +107,12 @@
   }
 
   ::-webkit-scrollbar-track {
-    background-color: hsl(var(--background));
+    background-color: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
   }
 
   ::-webkit-scrollbar-thumb {
-    background-color: hsl(var(--ring));
+    background: linear-gradient(135deg, #6200EE, #03DAC5);
     border-radius: 9999px;
   }
 
@@ -84,7 +126,7 @@
   input,
   select,
   textarea {
-    transition-property: background-color, border-color, color;
+    transition-property: all;
     transition-duration: 200ms;
     transition-timing-function: ease-in-out;
   }
@@ -95,9 +137,43 @@
     outline-offset: 2px;
     outline-color: hsl(var(--ring));
   }
+
+  /* Glass morphism utility */
+  .glass {
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+  }
+
+  .glass-dark {
+    background: rgba(0, 0, 0, 0.25);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
 }
 
-/* Loading animation */
+/* Animations */
+@keyframes gradientShift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translate(0px, 0px) rotate(0deg);
+  }
+  33% {
+    transform: translate(30px, -30px) rotate(120deg);
+  }
+  66% {
+    transform: translate(-20px, 20px) rotate(240deg);
+  }
+}
+
 @keyframes shimmer {
   0% {
     background-position: -1200px 0;
@@ -105,4 +181,22 @@
   100% {
     background-position: calc(1200px + 100%) 0;
   }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Blur backdrop utilities */
+.backdrop-blur-glass {
+  backdrop-filter: blur(16px) saturate(180%);
+}
+
+.backdrop-blur-strong {
+  backdrop-filter: blur(24px) saturate(200%);
 }
