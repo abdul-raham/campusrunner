@@ -21,8 +21,10 @@ import {
   Flame,
   ShieldCheck,
 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
+import { useState } from 'react';
+import AnimatedLoader from '../components/AnimatedLoader';
 
 const services = [
   {
@@ -84,7 +86,17 @@ const fadeUp = {
 };
 
 export default function HomePage() {
+  const [isLoading, setIsLoading] = useState(true);
+
   return (
+    <>
+      <AnimatePresence>
+        {isLoading && (
+          <AnimatedLoader onComplete={() => setIsLoading(false)} />
+        )}
+      </AnimatePresence>
+      
+      {!isLoading && (
     <main className="min-h-screen overflow-x-hidden bg-[#F6F7FB] text-[#0B0E11]">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute left-[-120px] top-[-80px] h-[320px] w-[320px] rounded-full bg-[#6200EE]/20 blur-3xl" />
@@ -636,6 +648,7 @@ export default function HomePage() {
         </div>
       </footer>
     </main>
+      )}
+    </>
   );
-}
 }
