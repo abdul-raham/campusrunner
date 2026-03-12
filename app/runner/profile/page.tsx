@@ -1,145 +1,135 @@
-import { Metadata } from 'next';
-import { Star, User, Mail, Phone, MapPin, Edit2, Camera, Award } from 'lucide-react';
+'use client';
 
-export const dynamic = 'force-dynamic';
+import { useAuth } from '@/hooks/useAuth';
+import { motion } from 'framer-motion';
+import { User, Mail, Phone, MapPin, Star, Award, Edit } from 'lucide-react';
 
-export const metadata: Metadata = {
-  title: 'My Profile - CampusRunner',
-  description: 'View and update your runner profile',
-};
+export default function RunnerProfilePage() {
+  const { profile } = useAuth();
 
-export default function ProfilePage() {
+  const profileFields = [
+    { label: 'Full Name', value: profile?.full_name, icon: User },
+    { label: 'Email', value: profile?.email, icon: Mail },
+    { label: 'Phone', value: profile?.phone, icon: Phone },
+    { label: 'Location', value: profile?.hostel_location, icon: MapPin },
+  ];
+
   return (
-    <div className="space-y-8">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="min-h-screen px-3 py-4 md:px-8 md:py-8"
+    >
       {/* Header */}
-      <div>
-        <h1 className="text-4xl font-black text-[#0B0E11] mb-2">
-          Your Profile
-        </h1>
-        <p className="text-[#6B7280] text-lg">
-          Manage your runner account
-        </p>
-      </div>
+      <motion.div
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        className="mb-4 flex items-center justify-between"
+      >
+        <div>
+          <h1 className="text-2xl font-black text-[#0B0E11] sm:text-3xl md:text-4xl">Profile</h1>
+          <p className="mt-1 text-xs text-[#6B7280] sm:text-sm">Manage your account information</p>
+        </div>
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          className="flex items-center gap-2 rounded-2xl border-2 border-[#E9E4FF] bg-white px-4 py-2.5 text-xs font-bold text-[#6200EE] shadow-lg transition-all hover:bg-[#F4ECFF] cursor-pointer sm:px-5 sm:py-3 sm:text-sm"
+        >
+          <Edit className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+          <span className="hidden sm:inline">Edit</span>
+        </motion.button>
+      </motion.div>
 
-      {/* Profile Card */}
-      <div className="rounded-[28px] border border-[#E9E4FF] bg-white/70 p-8 backdrop-blur">
-        <div className="flex flex-col md:flex-row gap-8 mb-8">
-          {/* Avatar */}
-          <div className="flex flex-col items-center">
-            <div className="relative mb-4">
-              <div className="w-32 h-32 rounded-2xl bg-gradient-to-br from-[#6200EE] to-[#4F2EE8] flex items-center justify-center text-5xl shadow-lg">
-                👤
+      <div className="grid gap-4 lg:grid-cols-3">
+        {/* Profile Card */}
+        <motion.div
+          initial={{ scale: 0.95, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: 0.1 }}
+          className="lg:col-span-1"
+        >
+          <div className="rounded-3xl border-2 border-[#E9E4FF] bg-gradient-to-br from-white to-[#F4ECFF] p-5 shadow-lg sm:p-6">
+            <div className="mb-5 flex flex-col items-center sm:mb-6">
+              <motion.div
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                className="mb-3 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-[#6200EE] to-[#03DAC5] text-3xl font-black text-white shadow-xl shadow-[#6200EE]/30 sm:mb-4 sm:h-24 sm:w-24 sm:text-4xl"
+              >
+                {profile?.full_name?.charAt(0) || 'R'}
+              </motion.div>
+              <h2 className="text-center text-lg font-black text-[#0B0E11] sm:text-xl">{profile?.full_name}</h2>
+              <p className="text-xs text-[#6B7280] sm:text-sm">Runner</p>
+            </div>
+
+            {/* Stats */}
+            <div className="space-y-2.5 sm:space-y-3">
+              <div className="flex items-center justify-between rounded-xl border border-[#E9E4FF] bg-white p-3">
+                <span className="flex items-center gap-2 text-xs font-semibold text-[#6B7280] sm:text-sm">
+                  <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400 sm:h-4 sm:w-4" />
+                  Rating
+                </span>
+                <span className="text-sm font-black text-[#0B0E11] sm:text-base">4.9</span>
               </div>
-              <button className="absolute bottom-0 right-0 p-2 rounded-full bg-white border border-[#E9E4FF] shadow-lg hover:shadow-xl transition">
-                <Camera className="w-5 h-5 text-[#6200EE]" />
-              </button>
-            </div>
-            <h2 className="text-2xl font-black text-[#0B0E11]">Chukwu David</h2>
-            <p className="text-[#6B7280] font-semibold mt-1">Campus Hero Tier</p>
-          </div>
-
-          {/* Stats */}
-          <div className="flex-1 grid grid-cols-3 gap-4">
-            <div className="border-l-4 border-[#6200EE] pl-4">
-              <p className="text-[#6B7280] text-sm font-semibold mb-1">Rating</p>
-              <p className="text-3xl font-black text-[#0B0E11]">4.9</p>
-              <p className="text-xs text-[#6B7280] mt-1">45 reviews</p>
-            </div>
-            <div className="border-l-4 border-[#03DAC5] pl-4">
-              <p className="text-[#6B7280] text-sm font-semibold mb-1">Completed</p>
-              <p className="text-3xl font-black text-[#0B0E11]">127</p>
-              <p className="text-xs text-[#6B7280] mt-1">Total jobs</p>
-            </div>
-            <div className="border-l-4 border-[#00C853] pl-4">
-              <p className="text-[#6B7280] text-sm font-semibold mb-1">Earnings</p>
-              <p className="text-3xl font-black text-[#0B0E11]">₦125K</p>
-              <p className="text-xs text-[#6B7280] mt-1">All-time</p>
+              <div className="flex items-center justify-between rounded-xl border border-[#E9E4FF] bg-white p-3">
+                <span className="flex items-center gap-2 text-xs font-semibold text-[#6B7280] sm:text-sm">
+                  <Award className="h-3.5 w-3.5 text-[#6200EE] sm:h-4 sm:w-4" />
+                  Jobs Completed
+                </span>
+                <span className="text-sm font-black text-[#0B0E11] sm:text-base">45</span>
+              </div>
             </div>
           </div>
-        </div>
+        </motion.div>
 
-        {/* Contact Info */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-8 border-t border-[#E9E4FF]">
-          <div>
-            <label className="flex items-center gap-2 text-[#6B7280] font-semibold mb-2">
-              <Mail className="w-4 h-4" />
-              Email
-            </label>
-            <p className="text-[#0B0E11] font-bold">chukwu.david@email.com</p>
-          </div>
-          <div>
-            <label className="flex items-center gap-2 text-[#6B7280] font-semibold mb-2">
-              <Phone className="w-4 h-4" />
-              Phone
-            </label>
-            <p className="text-[#0B0E11] font-bold">+234 (0) 800 123 4567</p>
-          </div>
-          <div>
-            <label className="flex items-center gap-2 text-[#6B7280] font-semibold mb-2">
-              <MapPin className="w-4 h-4" />
-              Campus Location
-            </label>
-            <p className="text-[#0B0E11] font-bold">Hostel A, Block 2</p>
-          </div>
-          <div>
-            <label className="flex items-center gap-2 text-[#6B7280] font-semibold mb-2">
-              <Award className="w-4 h-4" />
-              Student ID
-            </label>
-            <p className="text-[#0B0E11] font-bold">STU/2023/00456</p>
-          </div>
-        </div>
+        {/* Profile Details */}
+        <motion.div
+          initial={{ x: 20, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ delay: 0.2 }}
+          className="lg:col-span-2"
+        >
+          <div className="rounded-3xl border-2 border-[#E9E4FF] bg-white p-5 shadow-lg sm:p-6">
+            <h3 className="mb-4 text-lg font-black text-[#0B0E11] sm:mb-6 sm:text-xl">Personal Information</h3>
+            <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
+              {profileFields.map((field, idx) => {
+                const Icon = field.icon;
+                return (
+                  <motion.div
+                    key={field.label}
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.3 + idx * 0.1 }}
+                    className="rounded-xl border border-[#E9E4FF] bg-gradient-to-br from-[#F4ECFF] to-white p-3.5 sm:p-4"
+                  >
+                    <div className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[#6B7280] sm:text-xs">
+                      <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                      {field.label}
+                    </div>
+                    <p className="text-sm font-bold text-[#0B0E11] sm:text-base">{field.value || 'Not provided'}</p>
+                  </motion.div>
+                );
+              })}
+            </div>
 
-        {/* Edit Button */}
-        <button className="w-full mt-8 px-6 py-4 rounded-2xl bg-gradient-to-r from-[#6200EE] to-[#4F2EE8] text-white font-bold hover:shadow-lg transition-all flex items-center justify-center gap-2">
-          <Edit2 className="w-5 h-5" />
-          Edit Profile
-        </button>
-      </div>
-
-      {/* Achievements */}
-      <div>
-        <h3 className="text-2xl font-black text-[#0B0E11] mb-6">
-          Your Badges 🌟
-        </h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[
-            { name: '100 Jobs', icon: '🏆', color: 'from-[#FFC107]' },
-            { name: 'Perfect Rating', icon: '⭐', color: 'from-[#00C853]' },
-            { name: 'Fast Runner', icon: '⚡', color: 'from-[#6200EE]' },
-            { name: 'Campus Hero', icon: '👑', color: 'from-[#03DAC5]' },
-          ].map((badge) => (
-            <div
-              key={badge.name}
-              className={`rounded-[28px] bg-gradient-to-br ${badge.color}/20 border border-[#E9E4FF] p-6 text-center`}
+            {/* Account Status */}
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.7 }}
+              className="mt-4 rounded-xl border-2 border-green-200 bg-gradient-to-r from-green-50 to-emerald-50 p-3.5 sm:mt-6 sm:p-4"
             >
-              <p className="text-3xl mb-2">{badge.icon}</p>
-              <p className="font-bold text-[#0B0E11] text-sm">{badge.name}</p>
-            </div>
-          ))}
-        </div>
+              <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-green-500 text-sm text-white sm:h-10 sm:w-10">
+                  ✓
+                </div>
+                <div>
+                  <p className="text-sm font-black text-green-900 sm:text-base">Account Verified</p>
+                  <p className="text-xs text-green-700 sm:text-sm">Your account is active and verified</p>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </motion.div>
       </div>
-
-      {/* Settings */}
-      <div>
-        <h3 className="text-2xl font-black text-[#0B0E11] mb-6">
-          Account Settings
-        </h3>
-        <div className="space-y-3">
-          <button className="w-full text-left px-6 py-4 rounded-2xl border border-[#E9E4FF] bg-white/70 backdrop-blur text-[#0B0E11] font-bold hover:shadow-lg transition-all">
-            Change Password
-          </button>
-          <button className="w-full text-left px-6 py-4 rounded-2xl border border-[#E9E4FF] bg-white/70 backdrop-blur text-[#0B0E11] font-bold hover:shadow-lg transition-all">
-            Privacy Settings
-          </button>
-          <button className="w-full text-left px-6 py-4 rounded-2xl border border-[#E9E4FF] bg-white/70 backdrop-blur text-[#0B0E11] font-bold hover:shadow-lg transition-all">
-            Notification Preferences
-          </button>
-          <button className="w-full text-left px-6 py-4 rounded-2xl border border-[#E9E4FF] bg-white/70 backdrop-blur text-red-600 font-bold hover:bg-red-50 transition-all">
-            Delete Account
-          </button>
-        </div>
-      </div>
-    </div>
+    </motion.div>
   );
 }

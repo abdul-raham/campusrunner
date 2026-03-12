@@ -1,0 +1,1 @@
+export default function AdminSettingsPage() { return <div className="space-y-4"><h1 className="text-2xl font-black">Settings</h1><div className="rounded-[24px] border border-[#E9E4FF] bg-white p-4 shadow-sm text-slate-600">Toggle services, update commissions, and manage platform defaults here.</div></div>; }

@@ -1,0 +1,1 @@
+export default function AdminStudentsPage() { return <div className="space-y-4"><h1 className="text-2xl font-black">Students</h1>{['Favour A.','Daniel O.','Mariam K.'].map((o)=><div key={o} className="rounded-[24px] border border-[#E9E4FF] bg-white p-4 shadow-sm text-slate-600">{o}</div>)}</div>; }
