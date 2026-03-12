@@ -78,10 +78,10 @@ export const useAuth = () => {
 
       setUser(null);
       setProfile(null);
+      setLoading(false);
       router.push('/');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Logout failed');
-    } finally {
       setLoading(false);
     }
   };

@@ -47,9 +47,15 @@ export default function StudentLayout({
   ];
 
   const handleLogout = async () => {
-    const { supabase } = await import('@/supabase/client');
-    await supabase.auth.signOut();
-    router.push('/');
+    try {
+      const { supabase } = await import('@/supabase/client');
+      await supabase.auth.signOut();
+      router.refresh();
+      router.push('/');
+    } catch (error) {
+      console.error('Logout error:', error);
+      router.push('/');
+    }
   };
 
   return (

@@ -22,7 +22,7 @@ export default function RunnerLayout({
     }
   }, [user, profile, loading, router]);
 
-  if (loading) {
+  if (loading && !user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -45,9 +45,15 @@ export default function RunnerLayout({
   ];
 
   const handleLogout = async () => {
-    const { supabase } = await import('@/supabase/client');
-    await supabase.auth.signOut();
-    router.push('/');
+    try {
+      const { supabase } = await import('@/supabase/client');
+      await supabase.auth.signOut();
+      router.refresh();
+      router.push('/');
+    } catch (error) {
+      console.error('Logout error:', error);
+      router.push('/');
+    }
   };
 
   return (
