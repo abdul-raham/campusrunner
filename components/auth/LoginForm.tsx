@@ -29,31 +29,43 @@ export function LoginFormComponent() {
       });
 
       if (authError) {
+        console.error('Auth error:', authError);
         setError(authError.message);
+        setIsLoading(false);
         return;
       }
 
-      if (data.user) {
-        // Get user profile to determine role
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', data.user.id)
-          .single();
-
-        // Redirect based on role
-        const role = profile?.role || 'student';
-        if (role === 'student') {
-          router.push('/student/dashboard');
-        } else if (role === 'runner') {
-          router.push('/runner/dashboard');
-        } else {
-          router.push('/admin/dashboard');
-        }
+      if (!data.user) {
+        setError('Login failed - no user returned');
+        setIsLoading(false);
+        return;
       }
+
+      console.log('Login successful, user:', data.user.id);
+
+      // Get user profile to determine role
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', data.user.id)
+        .single();
+
+      if (profileError) {
+        console.error('Profile error:', profileError);
+        setError('Failed to load profile');
+        setIsLoading(false);
+        return;
+      }
+
+      // Redirect based on role
+      const role = profile?.role || 'student';
+      console.log('User role:', role, 'Redirecting to:', `/${role}`);
+      
+      // Use window.location for full page reload to ensure cookies are set
+      window.location.href = `/${role}`;
     } catch (err) {
+      console.error('Login error:', err);
       setError('An unexpected error occurred');
-    } finally {
       setIsLoading(false);
     }
   };

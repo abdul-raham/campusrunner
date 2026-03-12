@@ -1,185 +1,188 @@
 'use client';
 
 import { useState } from 'react';
-import { Bell, Search, MapPin, Clock, Star, Package, CreditCard, TrendingUp, Users } from 'lucide-react';
+import { Bell, MapPin, Clock, Star, Package, CreditCard, TrendingUp, Zap, CheckCircle2, ArrowRight } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export default function RunnerDashboard() {
   const availableJobs = [
-    { id: 1, service: 'Market Run', location: 'Hostel 5', payment: '₦800', time: '30 mins', distance: '0.5km' },
+    { id: 1, service: 'Market Run', location: 'Hostel 5', payment: '₦800', time: '30 mins', distance: '0.5km', urgent: true },
     { id: 2, service: 'Gas Refill', location: 'Block A', payment: '₦500', time: '15 mins', distance: '0.3km' },
     { id: 3, service: 'Food Pickup', location: 'Cafeteria', payment: '₦600', time: '20 mins', distance: '0.8km' },
   ];
 
-  const recentJobs = [
-    { id: 1, service: 'Market Run', client: 'Sarah M.', status: 'Completed', payment: '₦800', rating: 5 },
-    { id: 2, service: 'Gas Refill', client: 'John D.', status: 'Completed', payment: '₦500', rating: 4 },
-    { id: 3, service: 'Laundry', client: 'Mike K.', status: 'Completed', payment: '₦700', rating: 5 },
-  ];
-
   return (
-    <div className="min-h-screen bg-[#F8FAFC]">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-100 px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Runner Dashboard</h1>
-            <p className="text-gray-600 text-sm">Ready to earn today?</p>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <input
-                type="text"
-                placeholder="Search jobs..."
-                className="pl-10 pr-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#6200EE] focus:border-transparent w-64"
-              />
+    <div className="min-h-screen bg-[#F6F7FB] pb-20">
+      {/* Mobile-First Header */}
+      <div className="sticky top-0 z-40 border-b border-white/30 bg-white/70 backdrop-blur-xl">
+        <div className="px-4 py-4">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h1 className="text-xl font-black text-[#0B0E11]">Runner Dashboard 🚀</h1>
+              <p className="text-sm text-[#6B7280]">Ready to earn today?</p>
             </div>
-            <button className="relative p-2 text-gray-600 hover:text-gray-900 transition-colors">
-              <Bell className="w-5 h-5" />
-              <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
+            <button className="relative rounded-2xl border border-[#E9E4FF] bg-white p-2.5 shadow-sm">
+              <Bell className="h-5 w-5 text-[#6200EE]" />
+              <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-red-500 border-2 border-white"></span>
             </button>
-            <div className="w-8 h-8 bg-[#6200EE] rounded-full flex items-center justify-center text-white font-semibold text-sm">
-              R
-            </div>
+          </div>
+
+          {/* Status Toggle */}
+          <div className="flex items-center gap-3 rounded-2xl border border-[#E9E4FF] bg-white p-2">
+            <button className="flex-1 rounded-xl bg-[#E6FFF9] py-2.5 text-sm font-bold text-[#03A894]">
+              🟢 Available
+            </button>
+            <button className="flex-1 rounded-xl py-2.5 text-sm font-bold text-[#6B7280]">
+              Offline
+            </button>
           </div>
         </div>
       </div>
 
-      <div className="px-6 py-6">
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-            <div className="flex items-center justify-between">
+      <div className="px-4 py-6 space-y-6">
+        {/* Earnings Card - Fintech Style */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-[#6200EE] via-[#4F2EE8] to-[#03DAC5] p-6 text-white shadow-xl shadow-[#6200EE]/20"
+        >
+          <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-white/10 blur-2xl" />
+          <div className="absolute -left-8 -bottom-8 h-32 w-32 rounded-full bg-white/10 blur-2xl" />
+          
+          <div className="relative">
+            <div className="flex items-center justify-between mb-6">
               <div>
-                <p className="text-gray-600 text-sm font-medium">Available Jobs</p>
-                <p className="text-3xl font-bold text-gray-900 mt-1">12</p>
+                <p className="text-xs uppercase tracking-wider text-white/70 mb-1">Total Earnings</p>
+                <h2 className="text-4xl font-black">₦25,000</h2>
+                <p className="text-sm text-white/80 mt-1">+₦2,500 this week</p>
               </div>
-              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                <Package className="w-6 h-6 text-blue-600" />
+              <div className="rounded-2xl bg-white/20 p-3 backdrop-blur-sm">
+                <TrendingUp className="h-6 w-6" />
               </div>
             </div>
-            <div className="flex items-center mt-4 text-sm">
-              <span className="text-green-600 font-medium">+3 new</span>
-              <span className="text-gray-500 ml-1">in last hour</span>
+            
+            <div className="flex items-center gap-3">
+              <button className="flex-1 rounded-xl bg-white/20 py-3 text-sm font-bold backdrop-blur-sm transition hover:bg-white/30">
+                Withdraw
+              </button>
+              <button className="flex-1 rounded-xl bg-white py-3 text-sm font-bold text-[#6200EE] transition hover:bg-white/90">
+                View History
+              </button>
             </div>
           </div>
+        </motion.div>
 
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm font-medium">Completed Jobs</p>
-                <p className="text-3xl font-bold text-gray-900 mt-1">45</p>
+        {/* Quick Stats */}
+        <div className="grid grid-cols-3 gap-3">
+          {[
+            { label: 'Available', value: '12', icon: Package, color: 'bg-blue-500' },
+            { label: 'Completed', value: '45', icon: CheckCircle2, color: 'bg-green-500' },
+            { label: 'Rating', value: '4.9', icon: Star, color: 'bg-yellow-500' },
+          ].map((stat) => (
+            <motion.div
+              key={stat.label}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="rounded-2xl border border-[#E9E4FF] bg-white p-4 shadow-sm"
+            >
+              <div className={`mb-2 inline-flex h-8 w-8 items-center justify-center rounded-xl ${stat.color} text-white`}>
+                <stat.icon className="h-4 w-4" />
               </div>
-              <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                <Star className="w-6 h-6 text-green-600" />
-              </div>
-            </div>
-            <div className="flex items-center mt-4 text-sm">
-              <span className="text-green-600 font-medium">+5</span>
-              <span className="text-gray-500 ml-1">this week</span>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm font-medium">Total Earnings</p>
-                <p className="text-3xl font-bold text-gray-900 mt-1">₦25,000</p>
-              </div>
-              <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
-                <CreditCard className="w-6 h-6 text-purple-600" />
-              </div>
-            </div>
-            <div className="flex items-center mt-4 text-sm">
-              <span className="text-green-600 font-medium">+₦2,500</span>
-              <span className="text-gray-500 ml-1">this week</span>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm font-medium">Rating</p>
-                <p className="text-3xl font-bold text-gray-900 mt-1">4.9</p>
-              </div>
-              <div className="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center">
-                <Star className="w-6 h-6 text-yellow-600" />
-              </div>
-            </div>
-            <div className="flex items-center mt-4 text-sm">
-              <div className="flex text-yellow-400">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-3 h-3 fill-current" />
-                ))}
-              </div>
-            </div>
-          </div>
+              <p className="text-2xl font-black text-[#0B0E11]">{stat.value}</p>
+              <p className="text-xs text-[#6B7280]">{stat.label}</p>
+            </motion.div>
+          ))}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Available Jobs */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold text-gray-900">Available Jobs</h3>
-              <button className="text-[#6200EE] font-medium hover:underline">View all</button>
-            </div>
-            <div className="space-y-4">
-              {availableJobs.map((job) => (
-                <div key={job.id} className="border border-gray-100 rounded-xl p-4 hover:border-[#6200EE] hover:bg-[#6200EE]/5 transition-all cursor-pointer">
-                  <div className="flex items-center justify-between mb-3">
-                    <h4 className="font-semibold text-gray-900">{job.service}</h4>
-                    <span className="text-lg font-bold text-[#6200EE]">{job.payment}</span>
-                  </div>
-                  <div className="flex items-center gap-4 text-sm text-gray-600">
-                    <div className="flex items-center gap-1">
-                      <MapPin className="w-4 h-4" />
-                      <span>{job.location}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Clock className="w-4 h-4" />
-                      <span>{job.time}</span>
-                    </div>
-                    <span className="bg-gray-100 px-2 py-1 rounded-full text-xs">{job.distance}</span>
-                  </div>
-                  <button className="w-full mt-3 bg-[#6200EE] text-white py-2 rounded-lg hover:bg-[#4F2EE8] transition-colors font-medium">
-                    Accept Job
-                  </button>
-                </div>
-              ))}
-            </div>
+        {/* Available Jobs */}
+        <div>
+          <div className="mb-4 flex items-center justify-between">
+            <h3 className="text-lg font-black text-[#0B0E11]">Available Jobs</h3>
+            <span className="rounded-full bg-[#E6FFF9] px-3 py-1 text-xs font-bold text-[#03A894]">
+              {availableJobs.length} New
+            </span>
           </div>
-
-          {/* Recent Jobs */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold text-gray-900">Recent Completed Jobs</h3>
-              <button className="text-[#6200EE] font-medium hover:underline">View all</button>
-            </div>
-            <div className="space-y-4">
-              {recentJobs.map((job) => (
-                <div key={job.id} className="flex items-center justify-between p-4 border border-gray-100 rounded-xl">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
-                      <Package className="w-5 h-5 text-green-600" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-900">{job.service}</p>
-                      <p className="text-sm text-gray-600">Client: {job.client}</p>
+          
+          <div className="space-y-3">
+            {availableJobs.map((job) => (
+              <motion.div
+                key={job.id}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="relative overflow-hidden rounded-2xl border border-[#E9E4FF] bg-white p-5 shadow-sm"
+              >
+                {job.urgent && (
+                  <div className="absolute right-3 top-3 rounded-full bg-red-100 px-2 py-1 text-[10px] font-bold text-red-600">
+                    🔥 URGENT
+                  </div>
+                )}
+                
+                <div className="mb-4 flex items-start justify-between">
+                  <div>
+                    <h4 className="text-lg font-black text-[#0B0E11]">{job.service}</h4>
+                    <div className="mt-2 flex items-center gap-3 text-sm text-[#6B7280]">
+                      <div className="flex items-center gap-1">
+                        <MapPin className="h-3 w-3" />
+                        <span>{job.location}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        <span>{job.time}</span>
+                      </div>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-semibold text-gray-900">{job.payment}</p>
-                    <div className="flex items-center gap-1 mt-1">
-                      {[...Array(job.rating)].map((_, i) => (
-                        <Star key={i} className="w-3 h-3 fill-current text-yellow-400" />
-                      ))}
-                    </div>
+                    <p className="text-2xl font-black text-[#6200EE]">{job.payment}</p>
+                    <span className="text-xs text-[#6B7280]">{job.distance}</span>
                   </div>
                 </div>
-              ))}
-            </div>
+                
+                <button className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#6200EE] py-3 text-sm font-bold text-white transition hover:bg-[#4F2EE8]">
+                  Accept Job
+                  <ArrowRight className="h-4 w-4" />
+                </button>
+              </motion.div>
+            ))}
           </div>
         </div>
+
+        {/* Performance Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="rounded-2xl border border-[#E9E4FF] bg-white p-5 shadow-sm"
+        >
+          <div className="mb-4 flex items-center justify-between">
+            <h3 className="text-sm font-black text-[#0B0E11]">This Week's Performance</h3>
+            <span className="rounded-full bg-[#F4ECFF] px-3 py-1 text-xs font-bold text-[#6200EE]">
+              🏆 Top 10%
+            </span>
+          </div>
+          
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-[#6B7280]">Jobs Completed</span>
+              <span className="text-sm font-bold text-[#0B0E11]">12 jobs</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-[#6B7280]">Avg. Delivery Time</span>
+              <span className="text-sm font-bold text-[#0B0E11]">18 mins</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-[#6B7280]">Customer Rating</span>
+              <div className="flex items-center gap-1">
+                <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                <span className="text-sm font-bold text-[#0B0E11]">4.9</span>
+              </div>
+            </div>
+          </div>
+          
+          <div className="mt-4 rounded-xl bg-[#E6FFF9] p-3 text-center">
+            <p className="text-xs font-bold text-[#03A894]">
+              🎉 You're earning 25% more than average runners!
+            </p>
+          </div>
+        </motion.div>
       </div>
     </div>
   );

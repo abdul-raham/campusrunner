@@ -33,10 +33,12 @@ export async function middleware(req: NextRequest) {
     const authRoutes = ['/login', '/signup', '/student-signup', '/runner-signup'];
     const isAuthRoute = authRoutes.some(route => pathname.startsWith(route));
     
+    // Redirect to login if accessing protected route without session
     if (isProtectedRoute && !session) {
       return NextResponse.redirect(new URL('/login', req.url));
     }
     
+    // Redirect to dashboard if accessing auth routes with active session
     if (isAuthRoute && session) {
       const { data: profile } = await supabase
         .from('profiles')
@@ -45,11 +47,13 @@ export async function middleware(req: NextRequest) {
         .single();
       
       const role = profile?.role || 'student';
-      return NextResponse.redirect(new URL(`/${role}/dashboard`, req.url));
+      // Fixed: redirect to correct routes
+      return NextResponse.redirect(new URL(`/${role}`, req.url));
     }
     
     return res;
   } catch (error) {
+    console.error('Middleware error:', error);
     return res;
   }
 }
