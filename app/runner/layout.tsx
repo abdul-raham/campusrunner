@@ -7,6 +7,7 @@ import { CreditCard, Home, LogOut, Package, User } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { BrandMark } from '@/components/ui/BrandMark';
 import { motion } from 'framer-motion';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 const nav = [
   { href: '/runner', label: 'Home', icon: Home },
@@ -55,6 +56,60 @@ export default function RunnerLayout({ children }: { children: React.ReactNode }
   }
 
   if (!user || profile?.role !== 'runner') return null;
+
+  // For now, let's assume all runners are approved since we don't have verification_status in Profile
+  // const isPending = profile?.verification_status === 'pending';
+  // const isRejected = profile?.verification_status === 'rejected';
+  const isPending = false;
+  const isRejected = false;
+
+  if (isPending) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[#F6F7FB] via-white to-[#F0EBFF]">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="max-w-md rounded-[28px] border border-[#E9E4FF] bg-white p-8 text-center shadow-lg"
+        >
+          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#FFF3CD] mx-auto">
+            <span className="text-2xl">⏳</span>
+          </div>
+          <h2 className="text-2xl font-black text-[#0B0E11]">Verification Pending</h2>
+          <p className="mt-3 text-[#6B7280]">Your runner account is under review. We'll notify you once it's approved.</p>
+          <button
+            onClick={handleLogout}
+            className="mt-6 w-full rounded-2xl border border-[#E9E4FF] bg-white px-4 py-3 font-semibold text-[#6200EE] transition hover:bg-[#F8F5FF]"
+          >
+            Logout
+          </button>
+        </motion.div>
+      </div>
+    );
+  }
+
+  if (isRejected) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[#F6F7FB] via-white to-[#F0EBFF]">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="max-w-md rounded-[28px] border border-red-200 bg-white p-8 text-center shadow-lg"
+        >
+          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-red-100 mx-auto">
+            <span className="text-2xl">❌</span>
+          </div>
+          <h2 className="text-2xl font-black text-red-600">Verification Rejected</h2>
+          <p className="mt-3 text-[#6B7280]">Your runner application was not approved. Please contact support for more information.</p>
+          <button
+            onClick={handleLogout}
+            className="mt-6 w-full rounded-2xl border border-red-200 bg-red-50 px-4 py-3 font-semibold text-red-600 transition hover:bg-red-100"
+          >
+            Logout
+          </button>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#F6F7FB] via-white to-[#F0EBFF]">
@@ -116,17 +171,22 @@ export default function RunnerLayout({ children }: { children: React.ReactNode }
             })}
           </nav>
 
-          {/* Logout Button */}
-          <motion.button
+          {/* Theme Toggle & Logout */}
+          <motion.div
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.3 }}
-            onClick={handleLogout}
-            className="mt-8 flex w-full items-center gap-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-600 transition-all hover:bg-red-100 cursor-pointer"
+            transition={{ delay: 0.25 }}
+            className="mt-8 space-y-2 flex flex-col"
           >
-            <LogOut className="h-4 w-4" />
-            Logout
-          </motion.button>
+            <ThemeToggle />
+            <button
+              onClick={handleLogout}
+              className="flex w-full items-center justify-center gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-600 transition-all hover:bg-red-100 cursor-pointer"
+            >
+              <LogOut className="h-4 w-4" />
+              Logout
+            </button>
+          </motion.div>
         </motion.aside>
 
         {/* Main Content */}

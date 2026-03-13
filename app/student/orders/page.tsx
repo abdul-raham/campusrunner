@@ -1,117 +1,162 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/supabase/client';
+import { Package, Clock, ChevronRight } from 'lucide-react';
+import Link from 'next/link';
+import { PageLoader } from '@/components/PageLoader';
+
+interface Order {
+  id: string;
+  title: string;
+  status: string;
+  final_amount: number;
+  created_at: string;
+  service_category_id: string;
+  service_categories: { name: string } | null;
+}
 
 export default function StudentOrdersPage() {
+  const { user } = useAuth();
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
 
-  const orders = [
-    {
-      id: 'ORD-001',
-      service: 'Market Run',
-      runner: 'Chukwu O.',
-      status: 'completed',
-      amount: '₦500',
-      date: '2026-03-09',
-      rating: 4.8,
-    },
-    {
-      id: 'ORD-002',
-      service: 'Food Pickup',
-      runner: 'Ada M.',
-      status: 'in_progress',
-      amount: '₦750',
-      date: '2026-03-10',
-      rating: null,
-    },
-    {
-      id: 'ORD-003',
-      service: 'Printing',
-      runner: 'James K.',
-      status: 'pending',
-      amount: '₦300',
-      date: '2026-03-10',
-      rating: null,
-    },
-  ];
+  useEffect(() => {
+    if (user) fetchOrders();
+  }, [user]);
 
-  const filteredOrders = orders.filter((order) => {
-    if (filter === 'all') return true;
-    return order.status === filter;
-  });
+  const fetchOrders = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('orders')
+        .select('id, title, status, final_amount, created_at, service_category_id')
+        .eq('student_id', user?.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const ordersWithCategories = await Promise.all(
+        (data || []).map(async (order) => {
+          if (order.service_category_id) {
+            const { data: cat } = await supabase
+              .from('service_categories')
+              .select('name')
+              .eq('id', order.service_category_id)
+              .single();
+            return { ...order, service_categories: cat };
+          }
+          return { ...order, service_categories: null };
+        })
+      );
+
+      setOrders(ordersWithCategories);
+    } catch (error) {
+      console.error('Error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'pending': return 'bg-amber-50 text-amber-700';
+      case 'accepted': return 'bg-blue-50 text-blue-700';
+      case 'in_progress': return 'bg-purple-50 text-purple-700';
+      case 'completed': return 'bg-green-50 text-green-700';
+      case 'cancelled': return 'bg-red-50 text-red-700';
+      default: return 'bg-gray-50 text-gray-700';
+    }
+  };
+
+  const filteredOrders = orders.filter(o => filter === 'all' || o.status === filter);
+  const counts = {
+    all: orders.length,
+    pending: orders.filter(o => o.status === 'pending').length,
+    active: orders.filter(o => ['accepted', 'in_progress'].includes(o.status)).length,
+    completed: orders.filter(o => o.status === 'completed').length,
+  };
+
+  if (loading) return <PageLoader />;
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">My Orders</h1>
-        <p className="text-gray-600 mt-2">Track and manage your service requests</p>
-      </div>
-
-      {/* Filters */}
-      <div className="flex gap-2 flex-wrap">
-        {['all', 'pending', 'in_progress', 'completed'].map((status) => (
-          <button
-            key={status}
-            onClick={() => setFilter(status)}
-            className={`px-4 py-2 rounded-lg font-semibold transition-all ${
-              filter === status
-                ? 'bg-primary text-white'
-                : 'bg-white border text-gray-700 hover:border-primary'
-            }`}
-          >
-            {status.charAt(0).toUpperCase() +
-              status.slice(1).replace(/_/g, ' ')}
-          </button>
-        ))}
-      </div>
-
-      {/* Orders Table */}
-      <div className="bg-white rounded-2xl border overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="border-b bg-gray-50">
-              <tr>
-                <th className="text-left px-6 py-4 font-semibold">Order</th>
-                <th className="text-left px-6 py-4 font-semibold">Service</th>
-                <th className="text-left px-6 py-4 font-semibold">Runner</th>
-                <th className="text-left px-6 py-4 font-semibold">Status</th>
-                <th className="text-left px-6 py-4 font-semibold">Amount</th>
-                <th className="text-left px-6 py-4 font-semibold">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredOrders.map((order) => (
-                <tr key={order.id} className="border-b hover:bg-gray-50">
-                  <td className="px-6 py-4 font-semibold text-primary">
-                    {order.id}
-                  </td>
-                  <td className="px-6 py-4">{order.service}</td>
-                  <td className="px-6 py-4">{order.runner}</td>
-                  <td className="px-6 py-4">
-                    <span
-                      className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${
-                        order.status === 'completed'
-                          ? 'bg-green-100 text-green-800'
-                          : order.status === 'in_progress'
-                            ? 'bg-blue-100 text-blue-800'
-                            : 'bg-yellow-100 text-yellow-800'
-                      }`}
-                    >
-                      {order.status.replace(/_/g, ' ')}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 font-semibold">{order.amount}</td>
-                  <td className="px-6 py-4">
-                    <a href={`/student/orders/${order.id}`} className="text-primary font-semibold hover:underline">
-                      View
-                    </a>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      <div className="bg-white border-b sticky top-0 z-10">
+        <div className="px-4 py-4">
+          <h1 className="text-xl font-bold text-gray-900">My Orders</h1>
+          <p className="text-sm text-gray-500 mt-0.5">{counts.all} total orders</p>
         </div>
+
+        {/* Filter tabs */}
+        <div className="flex gap-2 px-4 pb-3 overflow-x-auto">
+          {[
+            { key: 'all', label: 'All', count: counts.all },
+            { key: 'pending', label: 'Pending', count: counts.pending },
+            { key: 'active', label: 'Active', count: counts.active },
+            { key: 'completed', label: 'Done', count: counts.completed },
+          ].map(tab => (
+            <button
+              key={tab.key}
+              onClick={() => setFilter(tab.key)}
+              className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+                filter === tab.key
+                  ? 'bg-[#6200EE] text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              {tab.label} {tab.count > 0 && `(${tab.count})`}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Orders list */}
+      <div className="p-4 space-y-3">
+        {filteredOrders.length > 0 ? (
+          filteredOrders.map(order => (
+            <Link
+              key={order.id}
+              href={`/student/orders/${order.id}`}
+              className="block bg-white rounded-2xl p-4 active:scale-[0.98] transition-transform"
+            >
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-gray-900 truncate">{order.title}</h3>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    {order.service_categories?.name || 'Service'}
+                  </p>
+                </div>
+                <span className={`px-3 py-1 rounded-full text-xs font-medium ml-3 ${getStatusColor(order.status)}`}>
+                  {order.status === 'in_progress' ? 'In Progress' : order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1 text-xs text-gray-500">
+                  <Clock className="w-3.5 h-3.5" />
+                  {new Date(order.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-lg font-bold text-[#6200EE]">₦{order.final_amount.toLocaleString()}</span>
+                  <ChevronRight className="w-5 h-5 text-gray-400" />
+                </div>
+              </div>
+            </Link>
+          ))
+        ) : (
+          <div className="text-center py-16">
+            <Package className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+            <p className="text-gray-500 mb-4">No orders found</p>
+            <Link
+              href="/student/create-order"
+              className="inline-block px-6 py-2.5 bg-[#6200EE] text-white font-medium rounded-full"
+            >
+              Create Order
+            </Link>
+          </div>
+        )}
       </div>
     </div>
   );

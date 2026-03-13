@@ -1,81 +1,175 @@
 'use client';
 
-import { runnerJobs } from '@/constants/mock-data';
-import { motion } from 'framer-motion';
-import { MapPin, Filter } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/supabase/client';
+import { Package, MapPin, Clock, DollarSign } from 'lucide-react';
+import { PageLoader } from '@/components/PageLoader';
+
+interface Job {
+  id: string;
+  title: string;
+  description: string;
+  budget_amount: number;
+  pickup_location: string;
+  delivery_location: string;
+  created_at: string;
+  service_categories: { name: string } | null;
+}
 
 export default function RunnerJobsPage() {
+  const { user } = useAuth();
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [accepting, setAccepting] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchJobs();
+    const interval = setInterval(fetchJobs, 10000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const fetchJobs = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('orders')
+        .select('id, title, description, budget_amount, pickup_location, delivery_location, created_at, service_category_id')
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const jobsWithCategories = await Promise.all(
+        (data || []).map(async (job) => {
+          if (job.service_category_id) {
+            const { data: cat } = await supabase
+              .from('service_categories')
+              .select('name')
+              .eq('id', job.service_category_id)
+              .single();
+            return { ...job, service_categories: cat };
+          }
+          return { ...job, service_categories: null };
+        })
+      );
+
+      setJobs(jobsWithCategories);
+    } catch (error) {
+      console.error('Error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const acceptJob = async (jobId: string, studentId: string) => {
+    if (!user) return;
+    setAccepting(jobId);
+
+    try {
+      const { error: updateError } = await supabase
+        .from('orders')
+        .update({
+          runner_id: user.id,
+          status: 'accepted',
+          accepted_at: new Date().toISOString()
+        })
+        .eq('id', jobId);
+
+      if (updateError) throw updateError;
+
+      const { error: notifError } = await supabase
+        .from('notifications')
+        .insert({
+          user_id: studentId,
+          type: 'order_accepted',
+          title: 'Order Accepted',
+          message: 'A runner has accepted your order',
+          order_id: jobId
+        });
+
+      if (notifError) console.error('Notification error:', notifError);
+
+      fetchJobs();
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Failed to accept job');
+    } finally {
+      setAccepting(null);
+    }
+  };
+
+  if (loading) return <PageLoader />;
+
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="min-h-screen px-3 py-4 md:px-8 md:py-8"
-    >
-      {/* Header */}
-      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-black text-[#0B0E11] sm:text-3xl md:text-4xl">Job Feed</h1>
-          <p className="mt-1 text-xs text-[#6B7280] sm:text-sm">{runnerJobs.length} jobs available near you</p>
+    <div className="min-h-screen bg-gray-50">
+      <div className="bg-white border-b sticky top-0 z-10">
+        <div className="px-4 py-4">
+          <h1 className="text-xl font-bold text-gray-900">Available Jobs</h1>
+          <p className="text-sm text-gray-500 mt-0.5">{jobs.length} jobs available</p>
         </div>
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className="flex items-center justify-center gap-2 rounded-2xl border-2 border-[#E9E4FF] bg-white px-5 py-3 text-sm font-bold text-[#6B7280] shadow-lg transition-all hover:border-[#6200EE] hover:text-[#6200EE] cursor-pointer"
-        >
-          <Filter className="h-4 w-4" />
-          Filter Jobs
-        </motion.button>
       </div>
 
-      {/* Jobs List */}
-      <div className="space-y-3">
-        {runnerJobs.map((job, idx) => (
-          <motion.div
-            key={job.id}
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: idx * 0.1 }}
-            whileHover={{ scale: 1.02, y: -2 }}
-            className="group relative overflow-hidden rounded-3xl border-2 border-[#E9E4FF] bg-white p-4 shadow-lg transition-all hover:border-[#6200EE] hover:shadow-xl hover:shadow-[#6200EE]/10 sm:p-6"
-          >
-            {job.urgent && (
-              <div className="absolute right-3 top-3 rounded-full bg-gradient-to-r from-red-500 to-orange-500 px-2.5 py-1 text-[9px] font-black text-white shadow-lg sm:text-xs">
-                🔥 URGENT
+      <div className="p-4 space-y-3">
+        {jobs.length > 0 ? (
+          jobs.map(job => (
+            <div key={job.id} className="bg-white rounded-2xl p-4">
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex-1">
+                  <h3 className="font-semibold text-gray-900">{job.title}</h3>
+                  <p className="text-xs text-gray-500 mt-0.5">{job.service_categories?.name}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-lg font-bold text-[#6200EE]">₦{job.budget_amount.toLocaleString()}</p>
+                  <p className="text-xs text-gray-500">Budget</p>
+                </div>
               </div>
-            )}
-            
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex-1">
-                <h3 className="mb-2 text-lg font-black text-[#0B0E11] sm:mb-3 sm:text-xl">{job.service}</h3>
-                <div className="space-y-1.5 text-xs text-[#6B7280] sm:space-y-2 sm:text-sm">
-                  <div className="flex items-center gap-2">
-                    <div className="rounded-lg bg-[#F4ECFF] p-2">
-                      <MapPin className="h-3.5 w-3.5 text-[#6200EE] sm:h-4 sm:w-4" />
-                    </div>
-                    <span className="font-medium">
-                      <span className="font-bold text-[#0B0E11]">{job.pickup}</span> → <span className="font-bold text-[#0B0E11]">{job.dropoff}</span>
-                    </span>
+
+              {job.description && (
+                <p className="text-sm text-gray-600 mb-3">{job.description}</p>
+              )}
+
+              <div className="space-y-2 mb-4">
+                <div className="flex items-start gap-2">
+                  <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-gray-500">Pickup</p>
+                    <p className="text-sm text-gray-900 truncate">{job.pickup_location}</p>
                   </div>
                 </div>
+                {job.delivery_location && (
+                  <div className="flex items-start gap-2">
+                    <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs text-gray-500">Delivery</p>
+                      <p className="text-sm text-gray-900 truncate">{job.delivery_location}</p>
+                    </div>
+                  </div>
+                )}
               </div>
-              
-              <div className="flex items-center gap-3 sm:flex-col sm:items-end sm:gap-2">
-                <div className="flex-1 sm:text-right">
-                  <p className="text-xs font-semibold text-[#6B7280]">Payment</p>
-                  <p className="text-2xl font-black text-[#6200EE] sm:text-3xl">{job.amount}</p>
+
+              <div className="flex items-center justify-between pt-3 border-t">
+                <div className="flex items-center gap-1 text-xs text-gray-500">
+                  <Clock className="w-3.5 h-3.5" />
+                  {new Date(job.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                 </div>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="rounded-xl bg-gradient-to-r from-[#6200EE] to-[#4F2EE8] px-5 py-2.5 text-xs font-bold text-white shadow-lg shadow-[#6200EE]/25 transition-all hover:shadow-xl hover:shadow-[#6200EE]/40 cursor-pointer sm:px-6 sm:py-3 sm:text-sm"
+                <button
+                  onClick={() => acceptJob(job.id, job.student_id)}
+                  disabled={accepting === job.id}
+                  className="px-6 py-2 bg-[#6200EE] text-white font-medium rounded-full disabled:opacity-50"
                 >
-                  Accept
-                </motion.button>
+                  {accepting === job.id ? 'Accepting...' : 'Accept Job'}
+                </button>
               </div>
             </div>
-          </motion.div>
-        ))}
+          ))
+        ) : (
+          <div className="text-center py-16">
+            <Package className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+            <p className="text-gray-500">No jobs available</p>
+            <p className="text-sm text-gray-400 mt-1">Check back later for new orders</p>
+          </div>
+        )}
       </div>
-    </motion.div>
+    </div>
   );
 }

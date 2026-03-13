@@ -3,6 +3,13 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export async function middleware(req: NextRequest) {
+  const { pathname } = req.nextUrl;
+  
+  // Allow signup pages completely - no middleware checks
+  if (pathname.includes('student-signup') || pathname.includes('runner-signup')) {
+    return NextResponse.next();
+  }
+  
   let res = NextResponse.next();
   
   try {
@@ -25,21 +32,18 @@ export async function middleware(req: NextRequest) {
     );
     
     const { data: { session } } = await supabase.auth.getSession();
-    const { pathname } = req.nextUrl;
     
+    // Protected routes - require authentication
     const protectedRoutes = ['/student', '/runner', '/admin'];
     const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
-    
-    const authRoutes = ['/login', '/signup', '/student-signup', '/runner-signup'];
-    const isAuthRoute = authRoutes.some(route => pathname.startsWith(route));
     
     // Redirect to login if accessing protected route without session
     if (isProtectedRoute && !session) {
       return NextResponse.redirect(new URL('/login', req.url));
     }
     
-    // Redirect to dashboard if accessing auth routes with active session
-    if (isAuthRoute && session) {
+    // Redirect authenticated users away from login/forgot-password/reset-password
+    if (session && (pathname === '/login' || pathname === '/forgot-password' || pathname === '/reset-password')) {
       const { data: profile } = await supabase
         .from('profiles')
         .select('role')
@@ -47,7 +51,6 @@ export async function middleware(req: NextRequest) {
         .single();
       
       const role = profile?.role || 'student';
-      // Fixed: redirect to correct routes
       return NextResponse.redirect(new URL(`/${role}`, req.url));
     }
     

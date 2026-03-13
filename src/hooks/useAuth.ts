@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/supabase/client';
-import type { Profile } from '@/types';
+import type { Profile } from '@/types/index';
 import type { User } from '@supabase/supabase-js';
 
 export const useAuth = () => {
@@ -14,28 +14,31 @@ export const useAuth = () => {
   const router = useRouter();
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        // Fetch profile
-        supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single()
-          .then(({ data, error: profileError }) => {
-            if (profileError) {
-              console.error('Profile fetch error:', profileError);
-              setError(profileError.message);
-            } else {
-              setProfile(data);
-            }
-            setLoading(false);
-          });
-      } else {
+    // Get authenticated user (secure)
+    supabase.auth.getUser().then(({ data: { user: authUser }, error: authError }) => {
+      if (authError || !authUser) {
+        setUser(null);
+        setProfile(null);
         setLoading(false);
+        return;
       }
+      
+      setUser(authUser);
+      // Fetch profile
+      supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', authUser.id)
+        .single()
+        .then(({ data, error: profileError }) => {
+          if (profileError) {
+            console.error('Profile fetch error:', profileError);
+            setError(profileError.message);
+          } else {
+            setProfile(data);
+          }
+          setLoading(false);
+        });
     });
 
     // Listen for auth changes

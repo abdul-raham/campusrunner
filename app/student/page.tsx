@@ -1,236 +1,400 @@
 'use client';
 
-import { useState } from 'react';
-import { Bell, Search, Plus, TrendingUp, ArrowUpRight, ArrowDownLeft, Eye, EyeOff, Send, Package, CheckCircle2, Star } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/supabase/client';
+import { 
+  Package, 
+  CheckCircle2, 
+  Star, 
+  Clock, 
+  TrendingUp, 
+  ArrowUpRight, 
+  ArrowDownLeft, 
+  Eye, 
+  EyeOff,
+  Plus,
+  Zap,
+  ShoppingCart,
+  Shirt,
+  UtensilsCrossed
+} from 'lucide-react';
+import Link from 'next/link';
+
+interface Order {
+  id: string;
+  title: string;
+  status: string;
+  final_amount: number;
+  created_at: string;
+  service_categories: {
+    name: string;
+    icon_name: string;
+  } | null;
+  profiles: {
+    full_name: string;
+  } | null;
+}
+
+interface DashboardStats {
+  activeOrders: number;
+  completedOrders: number;
+  totalSpent: number;
+  avgRating: number;
+}
+
+import { PageLoader } from '@/components/PageLoader';
 
 export default function StudentDashboard() {
+  const { profile } = useAuth();
   const [showBalance, setShowBalance] = useState(true);
+  const [recentOrders, setRecentOrders] = useState<Order[]>([]);
+  const [stats, setStats] = useState<DashboardStats>({
+    activeOrders: 0,
+    completedOrders: 0,
+    totalSpent: 0,
+    avgRating: 0
+  });
+  const [loading, setLoading] = useState(true);
 
-  const quickActions = [
-    { label: 'Market Run', emoji: '🛒', color: 'from-blue-500 to-blue-600' },
-    { label: 'Gas Refill', emoji: '⛽', color: 'from-green-500 to-green-600' },
-    { label: 'Food Pickup', emoji: '🍔', color: 'from-orange-500 to-orange-600' },
-    { label: 'Laundry', emoji: '👕', color: 'from-purple-500 to-purple-600' },
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: {
+        type: "spring" as const,
+        stiffness: 100
+      }
+    }
+  };
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Fetch recent orders
+      const { data: ordersData } = await supabase
+        .from('orders')
+        .select(`
+          id,
+          title,
+          status,
+          final_amount,
+          created_at,
+          service_categories (name, icon_name),
+          profiles (full_name)
+        `)
+        .eq('student_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      if (ordersData) {
+        setRecentOrders(ordersData);
+      }
+
+      // Calculate stats
+      const { data: allOrders } = await supabase
+        .from('orders')
+        .select('status, final_amount')
+        .eq('student_id', user.id);
+
+      if (allOrders) {
+        const activeOrders = allOrders.filter(order => 
+          ['pending', 'accepted', 'in_progress'].includes(order.status)
+        ).length;
+        
+        const completedOrders = allOrders.filter(order => 
+          order.status === 'completed'
+        ).length;
+        
+        const totalSpent = allOrders
+          .filter(order => order.status === 'completed')
+          .reduce((sum, order) => sum + (order.final_amount || 0), 0);
+
+        setStats({
+          activeOrders,
+          completedOrders,
+          totalSpent,
+          avgRating: 4.8 // Mock rating for now
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getServiceIcon = (iconName: string) => {
+    const iconMap: { [key: string]: any } = {
+      'Zap': Zap,
+      'ShoppingCart': ShoppingCart,
+      'Shirt': Shirt,
+      'UtensilsCrossed': UtensilsCrossed,
+    };
+    return iconMap[iconName] || Package;
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'pending': return 'bg-yellow-100 text-yellow-700';
+      case 'accepted': return 'bg-blue-100 text-blue-700';
+      case 'in_progress': return 'bg-purple-100 text-purple-700';
+      case 'completed': return 'bg-green-100 text-green-700';
+      case 'cancelled': return 'bg-red-100 text-red-700';
+      default: return 'bg-gray-100 text-gray-700';
+    }
+  };
+
+  const quickServices = [
+    { name: 'Market Run', icon: ShoppingCart, color: 'from-blue-500 to-blue-600', href: '/student/create-order?service=market_run' },
+    { name: 'Gas Refill', icon: Zap, color: 'from-green-500 to-green-600', href: '/student/create-order?service=gas_refill' },
+    { name: 'Food Pickup', icon: UtensilsCrossed, color: 'from-orange-500 to-orange-600', href: '/student/create-order?service=food_pickup' },
+    { name: 'Laundry', icon: Shirt, color: 'from-purple-500 to-purple-600', href: '/student/create-order?service=laundry_pickup' },
   ];
 
-  const recentOrders = [
-    { id: 1, service: 'Market Run', runner: 'John D.', status: 'In Progress', amount: '₦2,500', time: '15 mins ago' },
-    { id: 2, service: 'Gas Refill', runner: 'Sarah M.', status: 'Completed', amount: '₦1,500', time: '2 hours ago' },
-    { id: 3, service: 'Food Pickup', runner: 'Mike K.', status: 'Delivered', amount: '₦3,200', time: '1 day ago' },
-  ];
-
-  const transactions = [
-    { type: 'sent', label: 'Market Run', runner: 'John D.', amount: '-₦2,500', time: '15 mins ago' },
-    { type: 'received', label: 'Refund', runner: 'System', amount: '+₦500', time: '2 hours ago' },
-    { type: 'sent', label: 'Gas Refill', runner: 'Sarah M.', amount: '-₦1,500', time: '1 day ago' },
-  ];
+  if (loading) {
+    return <PageLoader />;
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#F6F7FB] via-white to-[#F0EBFF] pt-8 pb-20">
-      <div className="max-w-7xl mx-auto px-6">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-black text-[#0B0E11] mb-2">Welcome back! 👋</h1>
-          <p className="text-[#6B7280] text-lg">Here's what's happening with your orders today</p>
-        </div>
+    <motion.div 
+      initial="hidden"
+      animate="visible"
+      variants={containerVariants}
+      className="min-h-screen px-4 py-6 md:px-6 md:py-8 lg:px-8"
+    >
+      {/* Header */}
+      <motion.div variants={itemVariants} className="mb-6">
+        <p className="text-xs font-semibold text-[#6B7280] mb-1">Welcome back</p>
+        <h1 className="text-2xl font-black text-[#0B0E11] sm:text-3xl md:text-4xl">
+          {profile?.full_name?.split(' ')[0] || 'Student'} 👋
+        </h1>
+        <p className="text-[#6B7280] text-sm sm:text-base mt-1">Here's what's happening with your orders today</p>
+      </motion.div>
 
-        {/* Main Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          {/* Left Column - Wallet & Stats */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Wallet Card */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="relative overflow-hidden rounded-[32px] bg-gradient-to-br from-[#6200EE] via-[#4F2EE8] to-[#03DAC5] p-8 text-white shadow-2xl shadow-[#6200EE]/30"
-            >
-              {/* Animated Background Elements */}
-              <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
-              <div className="absolute -left-20 -bottom-20 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
-              
-              <div className="relative z-10">
-                {/* Header */}
-                <div className="flex items-center justify-between mb-12">
-                  <div>
-                    <p className="text-white/70 text-sm font-semibold uppercase tracking-wider mb-2">Wallet Balance</p>
-                    <div className="flex items-baseline gap-3">
-                      <h2 className="text-5xl font-black">
-                        {showBalance ? '₦4,500' : '••••••'}
-                      </h2>
-                      <button
-                        onClick={() => setShowBalance(!showBalance)}
-                        className="p-2 rounded-lg bg-white/20 hover:bg-white/30 transition-all backdrop-blur-sm"
-                      >
-                        {showBalance ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
-                      </button>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-white/70 text-sm mb-2">Card Number</p>
-                    <p className="text-2xl font-mono font-bold">•••• •••• •••• 4500</p>
+      {/* Main Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 mb-6">
+        {/* Left Column - Wallet & Stats */}
+        <div className="lg:col-span-2 space-y-4 md:space-y-6">
+          {/* Wallet Card */}
+          <motion.div
+            variants={itemVariants}
+            whileHover={{ y: -5 }}
+            className="relative overflow-hidden rounded-2xl md:rounded-3xl bg-gradient-to-br from-[#6200EE] via-[#4F2EE8] to-[#03DAC5] p-5 sm:p-6 md:p-8 text-white shadow-2xl shadow-[#6200EE]/30"
+          >
+            {/* Animated Background Elements */}
+            <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
+            <div className="absolute -left-20 -bottom-20 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
+            
+            <div className="relative z-10">
+              {/* Header */}
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <p className="text-white/70 text-xs font-semibold uppercase tracking-wider mb-2">Wallet Balance</p>
+                  <div className="flex items-baseline gap-2">
+                    <h2 className="text-2xl sm:text-3xl md:text-4xl font-black">
+                      {showBalance ? `₦${(5000 - stats.totalSpent).toLocaleString()}` : '••••••'}
+                    </h2>
+                    <motion.button
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={() => setShowBalance(!showBalance)}
+                      className="p-1.5 rounded-lg bg-white/20 hover:bg-white/30 transition-all backdrop-blur-sm"
+                    >
+                      {showBalance ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                    </motion.button>
                   </div>
                 </div>
-
-                {/* Card Details */}
-                <div className="flex items-end justify-between">
-                  <div>
-                    <p className="text-white/70 text-xs mb-1">CARDHOLDER</p>
-                    <p className="text-lg font-semibold">Abdul Rahman</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-white/70 text-xs mb-1">VALID THRU</p>
-                    <p className="text-lg font-semibold">12/26</p>
-                  </div>
+                <div className="text-right">
+                  <p className="text-white/70 text-xs mb-1">Total Spent</p>
+                  <p className="text-lg sm:text-xl font-bold">₦{stats.totalSpent.toLocaleString()}</p>
                 </div>
               </div>
-            </motion.div>
 
-            {/* Quick Stats */}
-            <div className="grid grid-cols-3 gap-4">
-              {[
-                { label: 'Active Orders', value: '2', icon: Package, color: 'from-blue-500 to-blue-600' },
-                { label: 'Completed', value: '28', icon: CheckCircle2, color: 'from-green-500 to-green-600' },
-                { label: 'Avg Rating', value: '4.8', icon: Star, color: 'from-yellow-500 to-yellow-600' },
-              ].map((stat, idx) => {
-                const Icon = stat.icon;
+              {/* Card Details */}
+              <div className="flex items-end justify-between">
+                <div>
+                  <p className="text-white/70 text-[10px] mb-1">STUDENT</p>
+                  <p className="text-sm sm:text-base font-semibold truncate max-w-[150px]">{profile?.full_name}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-white/70 text-[10px] mb-1">UNIVERSITY</p>
+                  <p className="text-sm sm:text-base font-semibold truncate max-w-[150px]">{profile?.university}</p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Quick Stats */}
+          <div className="grid grid-cols-3 gap-3 md:gap-4">
+            {[
+              { label: 'Active Orders', value: stats.activeOrders.toString(), icon: Package, color: 'from-blue-500 to-blue-600' },
+              { label: 'Completed', value: stats.completedOrders.toString(), icon: CheckCircle2, color: 'from-green-500 to-green-600' },
+              { label: 'Avg Rating', value: stats.avgRating.toString(), icon: Star, color: 'from-yellow-500 to-yellow-600' },
+            ].map((stat, idx) => {
+              const Icon = stat.icon;
+              return (
+                <motion.div
+                  key={idx}
+                  variants={itemVariants}
+                  whileHover={{ y: -5, scale: 1.02 }}
+                  className="rounded-xl md:rounded-2xl border border-white/20 bg-white/50 backdrop-blur-xl p-3 md:p-4 shadow-lg hover:shadow-xl transition-all"
+                >
+                  <div className={`inline-flex h-8 w-8 md:h-10 md:w-10 items-center justify-center rounded-lg md:rounded-xl bg-gradient-to-br ${stat.color} text-white mb-2`}>
+                    <Icon className="w-4 h-4 md:w-5 md:h-5" />
+                  </div>
+                  <p className="text-xl md:text-2xl font-black text-[#0B0E11] mb-0.5">{stat.value}</p>
+                  <p className="text-[10px] md:text-xs text-[#6B7280]">{stat.label}</p>
+                </motion.div>
+              );
+            })}
+          </div>
+
+          {/* Quick Services */}
+          <motion.div variants={itemVariants} className="rounded-xl md:rounded-2xl border border-white/50 bg-white/50 backdrop-blur-xl p-4 md:p-6 shadow-lg">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm md:text-base font-black text-[#0B0E11]">Quick Services</h3>
+              <Link href="/student/create-order" className="text-[#6200EE] font-bold text-xs hover:underline">
+                View all
+              </Link>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {quickServices.map((service, idx) => {
+                const Icon = service.icon;
                 return (
                   <motion.div
                     key={idx}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.1 }}
-                    className="rounded-2xl border border-white/20 bg-white/50 backdrop-blur-xl p-6 shadow-lg hover:shadow-xl transition-all"
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.3 + idx * 0.1 }}
+                    whileHover={{ scale: 1.05, y: -5 }}
+                    whileTap={{ scale: 0.95 }}
                   >
-                    <div className={`inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${stat.color} text-white mb-3`}>
-                      <Icon className="w-6 h-6" />
-                    </div>
-                    <p className="text-3xl font-black text-[#0B0E11] mb-1">{stat.value}</p>
-                    <p className="text-sm text-[#6B7280]">{stat.label}</p>
+                    <Link
+                      href={service.href}
+                      className="block p-3 rounded-lg md:rounded-xl border border-[#E9E4FF] bg-gradient-to-br from-white to-[#F4ECFF] hover:shadow-md transition-all text-center"
+                    >
+                      <div className={`inline-flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br ${service.color} text-white mb-2 mx-auto`}>
+                        <Icon className="w-5 h-5" />
+                      </div>
+                      <p className="text-xs font-bold text-[#0B0E11]">{service.name}</p>
+                    </Link>
                   </motion.div>
                 );
               })}
             </div>
-
-            {/* Quick Actions */}
-            <div>
-              <h3 className="text-xl font-black text-[#0B0E11] mb-4">Quick Actions</h3>
-              <div className="grid grid-cols-4 gap-4">
-                {quickActions.map((action, idx) => (
-                  <motion.button
-                    key={idx}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: idx * 0.1 }}
-                    className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-white to-gray-50 p-6 shadow-lg hover:shadow-xl transition-all border border-white/50 hover:border-[#6200EE]/50"
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-br from-[#6200EE]/5 to-[#03DAC5]/5 opacity-0 group-hover:opacity-100 transition" />
-                    <div className="relative z-10 text-center">
-                      <div className="text-4xl mb-3">{action.emoji}</div>
-                      <p className="font-bold text-[#0B0E11] group-hover:text-[#6200EE] transition">{action.label}</p>
-                    </div>
-                  </motion.button>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Right Column - Recent Activity */}
-          <div className="space-y-6">
-            {/* Recent Orders */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="rounded-2xl border border-white/50 bg-white/50 backdrop-blur-xl p-6 shadow-lg"
-            >
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-black text-[#0B0E11]">Recent Orders</h3>
-                <button className="text-[#6200EE] font-bold text-sm hover:underline">View all</button>
-              </div>
-              <div className="space-y-4">
-                {recentOrders.map((order) => (
-                  <div key={order.id} className="rounded-xl border border-[#E9E4FF] bg-gradient-to-br from-white to-[#F4ECFF] p-4 hover:shadow-md transition-all">
-                    <div className="flex items-start justify-between mb-2">
-                      <div>
-                        <p className="font-bold text-[#0B0E11]">{order.service}</p>
-                        <p className="text-xs text-[#6B7280]">{order.runner}</p>
-                      </div>
-                      <span className={`text-xs font-bold px-2 py-1 rounded-full ${
-                        order.status === 'Completed' ? 'bg-green-100 text-green-700' :
-                        order.status === 'In Progress' ? 'bg-blue-100 text-blue-700' :
-                        'bg-gray-100 text-gray-700'
-                      }`}>
-                        {order.status}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <p className="text-xs text-[#6B7280]">{order.time}</p>
-                      <p className="font-bold text-[#6200EE]">{order.amount}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-
-            {/* Transaction History */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="rounded-2xl border border-white/50 bg-white/50 backdrop-blur-xl p-6 shadow-lg"
-            >
-              <h3 className="text-lg font-black text-[#0B0E11] mb-4">Transactions</h3>
-              <div className="space-y-3">
-                {transactions.map((tx, idx) => (
-                  <div key={idx} className="flex items-center justify-between p-3 rounded-xl hover:bg-white/50 transition-all">
-                    <div className="flex items-center gap-3">
-                      <div className={`p-2 rounded-lg ${
-                        tx.type === 'sent' ? 'bg-red-100' : 'bg-green-100'
-                      }`}>
-                        {tx.type === 'sent' ? (
-                          <ArrowUpRight className={`w-4 h-4 ${
-                            tx.type === 'sent' ? 'text-red-600' : 'text-green-600'
-                          }`} />
-                        ) : (
-                          <ArrowDownLeft className="w-4 h-4 text-green-600" />
-                        )}
-                      </div>
-                      <div>
-                        <p className="text-sm font-bold text-[#0B0E11]">{tx.label}</p>
-                        <p className="text-xs text-[#6B7280]">{tx.time}</p>
-                      </div>
-                    </div>
-                    <p className={`font-bold ${
-                      tx.type === 'sent' ? 'text-red-600' : 'text-green-600'
-                    }`}>
-                      {tx.amount}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-          </div>
+          </motion.div>
         </div>
 
-        {/* Bottom Section - Promotional */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="rounded-2xl border border-white/50 bg-gradient-to-r from-[#6200EE]/10 via-[#03DAC5]/10 to-[#6200EE]/10 backdrop-blur-xl p-8 shadow-lg"
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-2xl font-black text-[#0B0E11] mb-2">⭐ You're a VIP Member!</h3>
-              <p className="text-[#6B7280] mb-4">Enjoy 10% off on your next 5 orders</p>
-              <button className="px-6 py-3 bg-gradient-to-r from-[#6200EE] to-[#03DAC5] text-white font-bold rounded-xl hover:shadow-lg transition-all">
-                Claim Reward
-              </button>
+        {/* Right Column - Recent Orders */}
+        <div className="space-y-4 md:space-y-6">
+          <motion.div
+            variants={itemVariants}
+            className="rounded-xl md:rounded-2xl border border-white/50 bg-white/50 backdrop-blur-xl p-4 md:p-6 shadow-lg"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm md:text-base font-black text-[#0B0E11]">Recent Orders</h3>
+              <Link href="/student/orders" className="text-[#6200EE] font-bold text-xs hover:underline">
+                View all
+              </Link>
             </div>
-            <div className="text-6xl">🎉</div>
-          </div>
-        </motion.div>
+            <div className="space-y-3">
+              {recentOrders.length > 0 ? (
+                recentOrders.map((order, idx) => {
+                  const ServiceIcon = getServiceIcon(order.service_categories?.icon_name || 'Package');
+                  return (
+                    <motion.div
+                      key={order.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.4 + idx * 0.1 }}
+                      whileHover={{ scale: 1.02 }}
+                    >
+                      <Link
+                        href={`/student/orders/${order.id}`}
+                        className="block rounded-lg md:rounded-xl border border-[#E9E4FF] bg-gradient-to-br from-white to-[#F4ECFF] p-3 hover:shadow-md transition-all"
+                      >
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <div className="p-1.5 rounded-lg bg-[#6200EE]/10">
+                              <ServiceIcon className="w-3.5 h-3.5 text-[#6200EE]" />
+                            </div>
+                            <div>
+                              <p className="font-bold text-[#0B0E11] text-xs truncate max-w-[120px]">{order.title}</p>
+                              <p className="text-[10px] text-[#6B7280] truncate max-w-[120px]">{order.profiles?.full_name || 'Unassigned'}</p>
+                            </div>
+                          </div>
+                          <span className={`text-[9px] font-bold px-2 py-1 rounded-full ${getStatusColor(order.status)}`}>
+                            {order.status.replace('_', ' ').toUpperCase()}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <p className="text-[10px] text-[#6B7280]">
+                            {new Date(order.created_at).toLocaleDateString()}
+                          </p>
+                          <p className="font-bold text-[#6200EE] text-xs">₦{order.final_amount?.toLocaleString() || '0'}</p>
+                        </div>
+                      </Link>
+                    </motion.div>
+                  );
+                })
+              ) : (
+                <div className="text-center py-6">
+                  <Package className="w-10 h-10 text-[#6B7280] mx-auto mb-2" />
+                  <p className="text-[#6B7280] font-medium text-xs">No orders yet</p>
+                  <Link
+                    href="/student/create-order"
+                    className="inline-flex items-center gap-2 mt-3 px-3 py-2 bg-[#6200EE] text-white rounded-lg text-xs font-bold hover:bg-[#4F2EE8] transition-colors"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    Create your first order
+                  </Link>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        </div>
       </div>
-    </div>
+
+      {/* Bottom Section - Promotional */}
+      <motion.div
+        variants={itemVariants}
+        whileHover={{ scale: 1.02 }}
+        className="rounded-xl md:rounded-2xl border border-white/50 bg-gradient-to-r from-[#6200EE]/10 via-[#03DAC5]/10 to-[#6200EE]/10 backdrop-blur-xl p-4 md:p-6 shadow-lg"
+      >
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-lg sm:text-xl font-black text-[#0B0E11] mb-1">⭐ Welcome to CampusRunner!</h3>
+            <p className="text-[#6B7280] text-xs sm:text-sm mb-3">Get your first order delivered with 10% off</p>
+            <Link
+              href="/student/create-order"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#6200EE] to-[#03DAC5] text-white font-bold rounded-lg text-xs hover:shadow-lg transition-all"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              Create Order
+            </Link>
+          </div>
+          <div className="text-3xl sm:text-5xl">🎉</div>
+        </div>
+      </motion.div>
+    </motion.div>
   );
 }

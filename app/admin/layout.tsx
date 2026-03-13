@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Menu, X, LogOut} from 'lucide-react';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 export default function AdminLayout({
   children,
@@ -90,10 +91,11 @@ export default function AdminLayout({
           </nav>
 
           {/* Footer */}
-          <div className="p-4 border-t">
+          <div className="p-4 border-t space-y-2">
+            <ThemeToggle />
             <button
               onClick={handleLogout}
-              className="w-full flex items-center gap-2 px-4 py-2 text-red-600 rounded-lg hover:bg-red-50 transition-colors font-medium"
+              className="w-full flex items-center justify-center gap-2 px-4 py-2 text-red-600 rounded-lg hover:bg-red-50 transition-colors font-medium"
             >
               <LogOut className="w-4 h-4" />
               Logout

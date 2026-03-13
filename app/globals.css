@@ -19,20 +19,37 @@
     --radius: 0.5rem;
   }
 
+  .light {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 3.6%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 3.6%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 3.6%;
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 45.1%;
+    --accent: 270 100% 55.1%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --ring: 270 100% 55.1%;
+  }
+
   .dark {
-    --background: 0 0% 3.6%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.6%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.6%;
-    --popover-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
+    --background: 222 47% 11%;
+    --foreground: 210 40% 98%;
+    --card: 222 47% 11%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222 47% 11%;
+    --popover-foreground: 210 40% 98%;
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
     --accent: 270 100% 55.1%;
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217 33% 17%;
+    --input: 217 33% 17%;
     --ring: 270 100% 55.1%;
   }
 
@@ -62,9 +79,18 @@
     -moz-osx-font-smoothing: grayscale;
     min-height: 100vh;
     position: relative;
+    transition: background 300ms ease-in-out;
   }
 
-  /* Animated gradient background */
+  .dark body {
+    background: linear-gradient(135deg, 
+      #0f172a 0%, 
+      #1e293b 25%, 
+      #0f172a 50%, 
+      #1e293b 75%, 
+      #0f172a 100%);
+  }
+
   body::before {
     content: '';
     position: fixed;
@@ -77,9 +103,15 @@
                 radial-gradient(circle at 40% 40%, rgba(98, 0, 238, 0.05) 0%, transparent 50%);
     pointer-events: none;
     z-index: -1;
+    transition: background 300ms ease-in-out;
   }
 
-  /* Floating orbs */
+  .dark body::before {
+    background: radial-gradient(circle at 20% 80%, rgba(98, 0, 238, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(3, 218, 197, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(98, 0, 238, 0.08) 0%, transparent 50%);
+  }
+
   body::after {
     content: '';
     position: fixed;
@@ -100,7 +132,6 @@
       monospace;
   }
 
-  /* Custom scrollbar */
   ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
@@ -120,7 +151,6 @@
     opacity: 0.8;
   }
 
-  /* Smooth transitions */
   button,
   a,
   input,
@@ -131,14 +161,12 @@
     transition-timing-function: ease-in-out;
   }
 
-  /* Focus styles */
   :focus-visible {
     outline-width: 2px;
     outline-offset: 2px;
     outline-color: hsl(var(--ring));
   }
 
-  /* Glass morphism utility */
   .glass {
     background: rgba(255, 255, 255, 0.25);
     backdrop-filter: blur(20px);
@@ -152,7 +180,6 @@
   }
 }
 
-/* Animations */
 @keyframes gradientShift {
   0%, 100% {
     background-position: 0% 50%;
@@ -192,7 +219,6 @@
   }
 }
 
-/* Blur backdrop utilities */
 .backdrop-blur-glass {
   backdrop-filter: blur(16px) saturate(180%);
 }
