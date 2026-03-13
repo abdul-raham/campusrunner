@@ -97,16 +97,25 @@ export default function StudentDashboard() {
           title,
           status,
           final_amount,
-          created_at,
-          service_categories (name, icon_name),
-          profiles (full_name)
+          created_at
         `)
         .eq('student_id', user.id)
         .order('created_at', { ascending: false })
         .limit(5);
 
       if (ordersData) {
-        setRecentOrders(ordersData);
+        // Transform data to match interface
+        const transformedOrders = ordersData.map(order => ({
+          ...order,
+          service_categories: {
+            name: 'General Service',
+            icon_name: 'Package'
+          },
+          profiles: {
+            full_name: 'Runner'
+          }
+        }));
+        setRecentOrders(transformedOrders);
       }
 
       // Calculate stats

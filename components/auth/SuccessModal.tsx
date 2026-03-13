@@ -36,8 +36,8 @@ export function SuccessModal({
       opacity: 1,
       transition: {
         duration: 0.6,
-        ease: "easeOut",
-        type: "spring",
+        ease: "easeOut" as const,
+        type: "spring" as const,
         stiffness: 100
       }
     }
@@ -51,7 +51,7 @@ export function SuccessModal({
       transition: {
         delay: 0.3,
         duration: 0.6,
-        type: "spring",
+        type: "spring" as const,
         stiffness: 150
       }
     },
@@ -60,7 +60,7 @@ export function SuccessModal({
       transition: {
         delay: 1,
         duration: 0.6,
-        ease: "easeInOut"
+        ease: "easeInOut" as const
       }
     }
   };
@@ -75,16 +75,16 @@ export function SuccessModal({
         duration: 0.5
       }
     }),
-    animate: {
+    animate: (i: number) => ({
       y: [0, -8, 0],
       opacity: [1, 0.6, 1],
       transition: {
         delay: 1.2 + i * 0.1,
         duration: 2,
         repeat: Infinity,
-        ease: "easeInOut"
+        ease: "easeInOut" as const
       }
-    }
+    })
   };
 
   const textVariants = {

@@ -113,6 +113,7 @@ export default function OrderDetailPage() {
 
       setOrder({
         ...data,
+        service_category_id: 'general', // Add missing field
         service_categories: {
           name: 'General Service',
           description: 'Service description'
