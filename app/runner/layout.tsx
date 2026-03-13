@@ -7,7 +7,6 @@ import { CreditCard, Home, LogOut, Package, User } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { BrandMark } from '@/components/ui/BrandMark';
 import { motion } from 'framer-motion';
-import { ThemeToggle } from '@/components/ThemeToggle';
 
 const nav = [
   { href: '/runner', label: 'Home', icon: Home },
@@ -171,14 +170,13 @@ export default function RunnerLayout({ children }: { children: React.ReactNode }
             })}
           </nav>
 
-          {/* Theme Toggle & Logout */}
+          {/* Logout */}
           <motion.div
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.25 }}
-            className="mt-8 space-y-2 flex flex-col"
+            className="mt-8"
           >
-            <ThemeToggle />
             <button
               onClick={handleLogout}
               className="flex w-full items-center justify-center gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-600 transition-all hover:bg-red-100 cursor-pointer"
