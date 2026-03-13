@@ -1,19 +1,30 @@
 'use client';
 
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
+import { useEffect } from 'react';
+import { LayoutDashboard, Package, Users, CreditCard, Settings, LogOut } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { Menu, X, LogOut} from 'lucide-react';
-import { ThemeToggle } from '@/components/ThemeToggle';
+import { BrandMark } from '@/components/ui/BrandMark';
+import { motion } from 'framer-motion';
+
+const nav = [
+  { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/admin/orders', label: 'Orders', icon: Package },
+  { href: '/admin/runners', label: 'Runners', icon: Users },
+  { href: '/admin/students', label: 'Students', icon: Users },
+  { href: '/admin/transactions', label: 'Transactions', icon: CreditCard },
+  { href: '/admin/settings', label: 'Settings', icon: Settings },
+];
 
 export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { user, profile, loading } = useAuth();
+  const { user, profile, loading, logout } = useAuth();
   const router = useRouter();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
     if (!loading && (!user || profile?.role !== 'admin')) {
@@ -21,13 +32,30 @@ export default function AdminLayout({
     }
   }, [user, profile, loading, router]);
 
+  const handleLogout = async () => {
+    try {
+      await logout();
+      router.push('/login');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p>Loading...</p>
-        </div>
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[#F6F7FB] via-white to-[#F0EBFF]">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center"
+        >
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            className="mx-auto mb-4 h-12 w-12 rounded-full border-4 border-[#6200EE] border-t-transparent"
+          />
+          <p className="text-sm font-semibold text-[#6B7280]">Loading...</p>
+        </motion.div>
       </div>
     );
   }
@@ -36,113 +64,121 @@ export default function AdminLayout({
     return null;
   }
 
-  const navItems = [
-    { label: 'Dashboard', href: '/admin', icon: '📊' },
-    { label: 'Orders', href: '/admin/orders', icon: '📦' },
-    { label: 'Runners', href: '/admin/runners', icon: '👟' },
-    { label: 'Students', href: '/admin/students', icon: '👤' },
-    { label: 'Transactions', href: '/admin/transactions', icon: '💳' },
-    { label: 'Settings', href: '/admin/settings', icon: '⚙️' },
-  ];
-
-  const handleLogout = async () => {
-    const { supabase } = await import('@/supabase/client');
-    await supabase.auth.signOut();
-    router.push('/');
-  };
-
   return (
-    <div className="flex h-screen bg-gray-50">
-      {/* Sidebar */}
-      <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${
-          isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
-      >
-        <div className="h-full flex flex-col">
-          {/* Header */}
-          <div className="p-4 border-b">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-                  <span className="text-white font-bold">⚡</span>
-                </div>
-                <span className="font-bold text-primary">CampusRunner</span>
-              </div>
-              <button className="md:hidden" onClick={() => setIsSidebarOpen(false)}>
-                <X className="w-5 h-5" />
-              </button>
+    <div className="min-h-screen bg-gradient-to-br from-[#F6F7FB] via-white to-[#F0EBFF]">
+      <div className="mx-auto flex min-h-screen max-w-7xl flex-col lg:flex-row">
+        {/* Desktop Sidebar */}
+        <motion.aside 
+          initial={{ x: -20, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          className="hidden w-[280px] border-r border-[#E9E4FF] bg-white/80 backdrop-blur-xl p-6 lg:block"
+        >
+          <div className="flex items-center gap-3 mb-8">
+            <BrandMark className="h-12 w-12" />
+            <div>
+              <p className="font-black text-[#0B0E11]">CampusRunner</p>
+              <p className="text-xs text-[#6B7280]">Admin Panel</p>
             </div>
           </div>
+
+          {/* User Info Card */}
+          <motion.div 
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.1 }}
+            className="mb-6 rounded-2xl border border-[#E9E4FF] bg-gradient-to-br from-[#6200EE]/5 to-[#03DAC5]/5 p-4"
+          >
+            <p className="text-xs font-semibold text-[#6B7280] mb-1">Welcome back</p>
+            <p className="text-sm font-black text-[#0B0E11]">{profile?.full_name}</p>
+            <div className="mt-3 flex items-center gap-2">
+              <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+              <span className="text-xs font-semibold text-green-600">Admin</span>
+            </div>
+          </motion.div>
 
           {/* Navigation */}
-          <nav className="flex-1 p-4 space-y-2">
-            {navItems.map((item) => (
-              <a
-                key={item.href}
-                href={item.href}
-                className="block px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors font-medium text-gray-700"
-                onClick={() => setIsSidebarOpen(false)}
-              >
-                <span className="mr-2">{item.icon}</span>
-                {item.label}
-              </a>
-            ))}
+          <nav className="space-y-2">
+            {nav.map((item, idx) => {
+              const Icon = item.icon;
+              const isActive = pathname === item.href;
+              return (
+                <motion.div
+                  key={item.href}
+                  initial={{ x: -20, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  transition={{ delay: 0.1 + idx * 0.05 }}
+                >
+                  <Link
+                    href={item.href}
+                    className={`flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold transition-all duration-200 cursor-pointer ${
+                      isActive
+                        ? 'bg-gradient-to-r from-[#6200EE] to-[#4F2EE8] text-white shadow-lg shadow-[#6200EE]/25'
+                        : 'text-[#6B7280] hover:bg-[#F4ECFF] hover:text-[#6200EE]'
+                    }`}
+                  >
+                    <Icon className="h-4 w-4" />
+                    {item.label}
+                  </Link>
+                </motion.div>
+              );
+            })}
           </nav>
 
-          {/* Footer */}
-          <div className="p-4 border-t space-y-2">
-            <ThemeToggle />
+          {/* Logout */}
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.25 }}
+            className="mt-8"
+          >
             <button
               onClick={handleLogout}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2 text-red-600 rounded-lg hover:bg-red-50 transition-colors font-medium"
+              className="flex w-full items-center justify-center gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-600 transition-all hover:bg-red-100 cursor-pointer"
             >
-              <LogOut className="w-4 h-4" />
+              <LogOut className="h-4 w-4" />
               Logout
             </button>
-          </div>
-        </div>
-      </aside>
+          </motion.div>
+        </motion.aside>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Top Bar */}
-        <header className="bg-white border-b sticky top-0 z-40">
-          <div className="flex items-center justify-between px-4 py-4">
-            <button
-              className="md:hidden"
-              onClick={() => setIsSidebarOpen(true)}
-            >
-              <Menu className="w-6 h-6" />
-            </button>
-            <div className="flex-1"></div>
-            <div className="flex items-center gap-4">
-              <div className="text-right hidden sm:block">
-                <p className="font-semibold text-gray-900">
-                  {profile?.full_name}
-                </p>
-                <p className="text-sm text-gray-600">Admin</p>
-              </div>
-              <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold">
-                {profile?.full_name?.charAt(0)}
-              </div>
-            </div>
-          </div>
-        </header>
-
-        {/* Page Content */}
-        <main className="flex-1 overflow-auto">
-          <div className="max-w-7xl mx-auto px-4 py-8">{children}</div>
-        </main>
+        {/* Main Content */}
+        <main className="flex-1 pb-24 lg:pb-0">{children}</main>
       </div>
 
-      {/* Mobile overlay */}
-      {isSidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
-          onClick={() => setIsSidebarOpen(false)}
-        ></div>
-      )}
+      {/* Mobile Bottom Navigation */}
+      <motion.nav 
+        initial={{ y: 100 }}
+        animate={{ y: 0 }}
+        className="fixed inset-x-0 bottom-0 z-50 border-t-2 border-[#E9E4FF] bg-white/95 backdrop-blur-xl shadow-2xl lg:hidden safe-area-bottom"
+      >
+        <div className="mx-auto grid max-w-full grid-cols-6 gap-0 px-2 py-2">
+          {nav.map((item) => {
+            const Icon = item.icon;
+            const isActive = pathname === item.href;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="flex flex-col items-center justify-center gap-1 py-2 cursor-pointer"
+              >
+                <motion.div
+                  whileTap={{ scale: 0.85 }}
+                  className={`flex h-10 w-10 items-center justify-center rounded-2xl transition-all ${
+                    isActive
+                      ? 'bg-gradient-to-r from-[#6200EE] to-[#4F2EE8] text-white shadow-lg shadow-[#6200EE]/30'
+                      : 'bg-[#F4ECFF] text-[#6B7280]'
+                  }`}
+                >
+                  <Icon className="h-4 w-4" />
+                </motion.div>
+                <span className={`text-[10px] font-semibold ${isActive ? 'text-[#6200EE]' : 'text-[#6B7280]'}`}>
+                  {item.label.split(' ')[0]}
+                </span>
+              </Link>
+            );
+          })}
+        </div>
+      </motion.nav>
     </div>
   );
 }

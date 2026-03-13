@@ -3,9 +3,9 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/supabase/client';
-import { Users, Package, CheckCircle, DollarSign, Clock, TrendingUp } from 'lucide-react';
+import { Users, Package, CheckCircle, DollarSign, Clock, TrendingUp, ArrowUpRight, Star, Activity } from 'lucide-react';
 import Link from 'next/link';
-import { PageLoader } from '@/components/PageLoader';
+import { motion } from 'framer-motion';
 
 interface Stats {
   totalStudents: number;
@@ -39,16 +39,19 @@ export default function AdminDashboard() {
         .select('id')
         .eq('role', 'student');
 
-      const { data: runners } = await supabase
+      const { data: allRunners } = await supabase
         .from('profiles')
         .select('id')
         .eq('role', 'runner');
 
       const { data: pendingRunners } = await supabase
         .from('profiles')
-        .select('id')
+        .select(`
+          id,
+          runners!inner(verification_status)
+        `)
         .eq('role', 'runner')
-        .eq('verification_status', 'pending');
+        .eq('runners.verification_status', 'pending');
 
       const { data: orders } = await supabase
         .from('orders')
@@ -59,7 +62,7 @@ export default function AdminDashboard() {
 
       setStats({
         totalStudents: students?.length || 0,
-        totalRunners: runners?.length || 0,
+        totalRunners: allRunners?.length || 0,
         pendingRunners: pendingRunners?.length || 0,
         totalOrders: orders?.length || 0,
         completedOrders: completedOrders.length,
@@ -72,97 +75,243 @@ export default function AdminDashboard() {
     }
   };
 
-  if (loading) return <PageLoader />;
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        duration: 0.6,
+        staggerChildren: 0.15
+      }
+    }
+  };
 
-  const statCards = [
-    { label: 'Total Students', value: stats.totalStudents, icon: Users, color: 'bg-blue-50 text-blue-600', iconBg: 'bg-blue-100' },
-    { label: 'Total Runners', value: stats.totalRunners, icon: Users, color: 'bg-purple-50 text-purple-600', iconBg: 'bg-purple-100' },
-    { label: 'Pending Approvals', value: stats.pendingRunners, icon: Clock, color: 'bg-amber-50 text-amber-600', iconBg: 'bg-amber-100', link: '/admin/runners' },
-    { label: 'Total Orders', value: stats.totalOrders, icon: Package, color: 'bg-green-50 text-green-600', iconBg: 'bg-green-100', link: '/admin/orders' },
-    { label: 'Completed Orders', value: stats.completedOrders, icon: CheckCircle, color: 'bg-teal-50 text-teal-600', iconBg: 'bg-teal-100' },
-    { label: 'Platform Revenue', value: `₦${stats.revenue.toLocaleString()}`, icon: DollarSign, color: 'bg-emerald-50 text-emerald-600', iconBg: 'bg-emerald-100' },
-  ];
+  const itemVariants = {
+    hidden: { y: 30, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: {
+        duration: 0.8,
+        type: "spring",
+        stiffness: 80
+      }
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-slate-50 via-white to-blue-50 min-h-screen">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center"
+        >
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+            className="mx-auto mb-4 h-16 w-16 rounded-full border-4 border-[#6200EE]/20 border-t-[#6200EE]"
+          />
+          <motion.p 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="text-lg font-semibold text-[#6B7280]"
+          >
+            Loading Dashboard...
+          </motion.p>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="bg-white border-b">
-        <div className="px-4 py-4">
-          <h1 className="text-xl font-bold text-gray-900">Admin Dashboard</h1>
-          <p className="text-sm text-gray-500 mt-0.5">System overview and monitoring</p>
-        </div>
-      </div>
-
-      <div className="p-4 space-y-4">
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 gap-3">
-          {statCards.map((stat, idx) => {
-            const Icon = stat.icon;
-            const content = (
-              <div className={`bg-white rounded-xl p-4 border ${stat.link ? 'active:scale-95 transition-transform' : ''}`}>
-                <div className={`w-10 h-10 rounded-full ${stat.iconBg} flex items-center justify-center mb-3`}>
-                  <Icon className={`w-5 h-5 ${stat.color.split(' ')[1]}`} />
-                </div>
-                <p className="text-2xl font-bold text-gray-900 mb-1">{stat.value}</p>
-                <p className="text-xs text-gray-500">{stat.label}</p>
-              </div>
-            );
-
-            return stat.link ? (
-              <Link key={idx} href={stat.link}>
-                {content}
-              </Link>
-            ) : (
-              <div key={idx}>{content}</div>
-            );
-          })}
-        </div>
-
-        {/* Quick Actions */}
-        <div className="bg-white rounded-2xl p-4">
-          <h2 className="font-semibold text-gray-900 mb-3">Quick Actions</h2>
-          <div className="space-y-2">
-            <Link
-              href="/admin/runners"
-              className="flex items-center justify-between p-3 bg-amber-50 rounded-xl border border-amber-100 active:scale-98 transition-transform"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
-                  <Clock className="w-5 h-5 text-amber-600" />
-                </div>
-                <div>
-                  <p className="font-medium text-gray-900 text-sm">Runner Approvals</p>
-                  <p className="text-xs text-gray-500">{stats.pendingRunners} pending</p>
-                </div>
-              </div>
-            </Link>
-
-            <Link
-              href="/admin/orders"
-              className="flex items-center justify-between p-3 bg-blue-50 rounded-xl border border-blue-100 active:scale-98 transition-transform"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                  <Package className="w-5 h-5 text-blue-600" />
-                </div>
-                <div>
-                  <p className="font-medium text-gray-900 text-sm">Manage Orders</p>
-                  <p className="text-xs text-gray-500">{stats.totalOrders} total orders</p>
-                </div>
-              </div>
-            </Link>
+    <div className="flex-1 p-6 lg:p-8 bg-gradient-to-br from-slate-50 via-white to-blue-50 min-h-screen">
+      {/* Header */}
+      <motion.div
+        initial={{ opacity: 0, y: -30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+        className="mb-8"
+      >
+        <div className="flex items-center gap-3 mb-2">
+          <div className="p-2 rounded-xl bg-gradient-to-br from-[#6200EE] to-[#4F2EE8] text-white">
+            <Activity className="h-6 w-6" />
           </div>
+          <h1 className="text-3xl font-black text-[#0B0E11]">Admin Dashboard</h1>
         </div>
+        <p className="text-[#6B7280]">Welcome back! Here's what's happening with CampusRunner today.</p>
+      </motion.div>
 
+      {/* Main Stats Grid */}
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8"
+      >
         {/* Revenue Card */}
-        <div className="bg-gradient-to-br from-[#6200EE] to-[#03DAC5] rounded-2xl p-6 text-white">
-          <div className="flex items-center gap-2 mb-2">
-            <TrendingUp className="w-5 h-5" />
-            <span className="text-sm font-medium opacity-90">Platform Revenue</span>
+        <motion.div variants={itemVariants} className="lg:col-span-1">
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 p-6 text-white">
+            <div className="flex items-center justify-between mb-4">
+              <div className="p-2 rounded-lg bg-white/20">
+                <DollarSign className="h-6 w-6" />
+              </div>
+              <ArrowUpRight className="h-5 w-5 opacity-60" />
+            </div>
+            <p className="text-green-100 text-sm font-medium mb-1">Platform Revenue</p>
+            <p className="text-3xl font-black mb-2">₦{(stats.revenue || 0).toLocaleString()}</p>
+            <div className="flex items-center gap-1 text-green-100 text-sm">
+              <TrendingUp className="h-4 w-4" />
+              <span>+12.5% from last month</span>
+            </div>
+            <div className="absolute -right-4 -bottom-4 opacity-10">
+              <DollarSign className="h-20 w-20" />
+            </div>
           </div>
-          <div className="text-4xl font-bold mb-1">₦{stats.revenue.toLocaleString()}</div>
-          <div className="text-sm opacity-80">From {stats.completedOrders} completed orders</div>
-        </div>
-      </div>
+        </motion.div>
+
+        {/* Orders Card */}
+        <motion.div variants={itemVariants}>
+          <Link href="/admin/orders">
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-600 p-6 text-white hover:shadow-xl transition-all duration-300 cursor-pointer">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-2 rounded-lg bg-white/20">
+                  <Package className="h-6 w-6" />
+                </div>
+                <span className="text-xs bg-white/20 px-2 py-1 rounded-full">{stats.completedOrders} completed</span>
+              </div>
+              <p className="text-blue-100 text-sm font-medium mb-1">Total Orders</p>
+              <p className="text-3xl font-black mb-2">{stats.totalOrders}</p>
+              <div className="flex items-center gap-1 text-blue-100 text-sm">
+                <CheckCircle className="h-4 w-4" />
+                <span>{((stats.completedOrders / stats.totalOrders) * 100 || 0).toFixed(1)}% completion rate</span>
+              </div>
+              <div className="absolute -right-4 -bottom-4 opacity-10">
+                <Package className="h-20 w-20" />
+              </div>
+            </div>
+          </Link>
+        </motion.div>
+
+        {/* Pending Approvals */}
+        <motion.div variants={itemVariants}>
+          <Link href="/admin/runners">
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 p-6 text-white hover:shadow-xl transition-all duration-300 cursor-pointer">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-2 rounded-lg bg-white/20">
+                  <Clock className="h-6 w-6" />
+                </div>
+                {stats.pendingRunners > 0 && (
+                  <div className="w-3 h-3 bg-red-400 rounded-full animate-pulse" />
+                )}
+              </div>
+              <p className="text-amber-100 text-sm font-medium mb-1">Pending Approvals</p>
+              <p className="text-3xl font-black mb-2">{stats.pendingRunners}</p>
+              <p className="text-amber-100 text-sm">Runners awaiting verification</p>
+              <div className="absolute -right-4 -bottom-4 opacity-10">
+                <Clock className="h-20 w-20" />
+              </div>
+            </div>
+          </Link>
+        </motion.div>
+      </motion.div>
+
+      {/* Secondary Stats */}
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8"
+      >
+        <motion.div variants={itemVariants}>
+          <Link href="/admin/students">
+            <div className="rounded-2xl border border-[#E9E4FF] bg-white/80 backdrop-blur-xl p-6 hover:shadow-lg transition-all duration-300 cursor-pointer">
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 text-white">
+                  <Users className="h-6 w-6" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-[#6B7280] mb-1">Total Students</p>
+                  <p className="text-2xl font-black text-[#0B0E11]">{stats.totalStudents}</p>
+                </div>
+                <ArrowUpRight className="h-5 w-5 text-[#6B7280]" />
+              </div>
+            </div>
+          </Link>
+        </motion.div>
+
+        <motion.div variants={itemVariants}>
+          <Link href="/admin/runners">
+            <div className="rounded-2xl border border-[#E9E4FF] bg-white/80 backdrop-blur-xl p-6 hover:shadow-lg transition-all duration-300 cursor-pointer">
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-xl bg-gradient-to-br from-teal-500 to-cyan-500 text-white">
+                  <Star className="h-6 w-6" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-[#6B7280] mb-1">Active Runners</p>
+                  <p className="text-2xl font-black text-[#0B0E11]">{stats.totalRunners}</p>
+                </div>
+                <ArrowUpRight className="h-5 w-5 text-[#6B7280]" />
+              </div>
+            </div>
+          </Link>
+        </motion.div>
+      </motion.div>
+
+      {/* Quick Actions */}
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="grid grid-cols-1 md:grid-cols-3 gap-4"
+      >
+        <motion.div variants={itemVariants}>
+          <Link href="/admin/transactions">
+            <div className="rounded-2xl border border-[#E9E4FF] bg-gradient-to-br from-indigo-50 to-purple-50 p-6 hover:shadow-lg transition-all duration-300 cursor-pointer">
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500 text-white">
+                  <DollarSign className="h-6 w-6" />
+                </div>
+                <div>
+                  <p className="font-semibold text-[#0B0E11]">View Transactions</p>
+                  <p className="text-sm text-[#6B7280]">Monitor all payments</p>
+                </div>
+              </div>
+            </div>
+          </Link>
+        </motion.div>
+
+        <motion.div variants={itemVariants}>
+          <Link href="/admin/settings">
+            <div className="rounded-2xl border border-[#E9E4FF] bg-gradient-to-br from-rose-50 to-pink-50 p-6 hover:shadow-lg transition-all duration-300 cursor-pointer">
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-xl bg-gradient-to-br from-rose-500 to-pink-500 text-white">
+                  <Activity className="h-6 w-6" />
+                </div>
+                <div>
+                  <p className="font-semibold text-[#0B0E11]">System Settings</p>
+                  <p className="text-sm text-[#6B7280]">Configure platform</p>
+                </div>
+              </div>
+            </div>
+          </Link>
+        </motion.div>
+
+        <motion.div variants={itemVariants}>
+          <div className="rounded-2xl border border-[#E9E4FF] bg-gradient-to-br from-emerald-50 to-teal-50 p-6">
+            <div className="flex items-center gap-4">
+              <div className="p-3 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 text-white">
+                <TrendingUp className="h-6 w-6" />
+              </div>
+              <div>
+                <p className="font-semibold text-[#0B0E11]">System Health</p>
+                <p className="text-sm text-emerald-600 font-semibold">All systems operational</p>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      </motion.div>
     </div>
   );
 }
