@@ -1,1 +1,0 @@
-export default function AdminRunnersPage() { return <div className="space-y-4"><h1 className="text-2xl font-black">Runners</h1>{['Sarah K. • Approved','Ayo J. • Approved','Tobi M. • Pending verification'].map((o)=><div key={o} className="rounded-[24px] border border-[#E9E4FF] bg-white p-4 shadow-sm text-slate-600">{o}</div>)}</div>; }

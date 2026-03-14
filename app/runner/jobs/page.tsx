@@ -6,7 +6,7 @@ import { supabase } from '@/supabase/client';
 import { Package, MapPin, Clock, Zap } from 'lucide-react';
 import { PageLoader } from '@/components/PageLoader';
 
-interface Job {
+interface AvailableJob {
   id: string;
   title: string;
   description: string;
@@ -20,7 +20,7 @@ interface Job {
 
 export default function RunnerJobsPage() {
   const { user } = useAuth();
-  const [jobs, setJobs] = useState<Job[]>([]);
+  const [jobs, setJobs] = useState<AvailableJob[]>([]);
   const [loading, setLoading] = useState(true);
   const [accepting, setAccepting] = useState<string | null>(null);
 

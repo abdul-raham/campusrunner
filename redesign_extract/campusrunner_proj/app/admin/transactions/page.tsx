@@ -1,1 +1,0 @@
-export default function AdminTransactionsPage() { return <div className="space-y-4"><h1 className="text-2xl font-black">Transactions</h1>{['CR-1102 • ₦1,200 • Success','CR-1098 • ₦2,500 • Success','CR-1092 • ₦3,400 • Pending'].map((o)=><div key={o} className="rounded-[24px] border border-[#E9E4FF] bg-white p-4 shadow-sm text-slate-600">{o}</div>)}</div>; }

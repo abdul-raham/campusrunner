@@ -128,6 +128,7 @@ export default function AdminOrdersPage() {
           created_at,
           student_id,
           runner_id,
+          service_category_id,
           pickup_location,
           delivery_location
         `)

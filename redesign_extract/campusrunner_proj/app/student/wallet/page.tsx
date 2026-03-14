@@ -1,3 +1,0 @@
-export default function StudentWalletPage() {
-  return <div className="px-4 py-5 md:px-8 md:py-8"><div className="rounded-[30px] bg-[linear-gradient(135deg,#6200EE,#4F2EE8_55%,#03DAC5)] p-6 text-white shadow-xl shadow-violet-500/20"><p className="text-xs uppercase tracking-[0.18em] text-white/70">Campus wallet</p><h1 className="mt-2 text-5xl font-black">₦4,500</h1><div className="mt-5 grid gap-3 md:grid-cols-3"><button className="rounded-2xl bg-white px-4 py-3 font-bold text-[#6200EE]">Top up</button><button className="rounded-2xl bg-white/15 px-4 py-3 font-bold">Withdraw</button><button className="rounded-2xl bg-white/15 px-4 py-3 font-bold">History</button></div></div></div>;
-}
