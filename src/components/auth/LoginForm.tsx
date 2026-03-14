@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { supabase } from '@/supabase/client';
 import { loginSchema } from '@/lib/schemas';
-import type { LoginForm } from '@/src/types';
+import type { LoginForm } from '@/types/index';
 import { Zap, Mail, Lock } from 'lucide-react';
 import Image from 'next/image';
 
