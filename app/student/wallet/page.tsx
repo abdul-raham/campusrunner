@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Script from 'next/script';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase';
 import PageLoader from '@/components/PageLoader';
@@ -15,6 +16,12 @@ interface Transaction {
   order_id?: string;
 }
 
+declare global {
+  interface Window {
+    PaystackPop?: any;
+  }
+}
+
 export default function StudentWalletPage() {
   const { user } = useAuth();
   const [showBalance, setShowBalance] = useState(true);
@@ -22,6 +29,9 @@ export default function StudentWalletPage() {
   const [loading, setLoading] = useState(true);
   const [balance, setBalance] = useState<number>(0);
   const [filter, setFilter] = useState<'all' | 'credit' | 'debit'>('all');
+  const [fundOpen, setFundOpen] = useState(false);
+  const [fundAmount, setFundAmount] = useState('');
+  const [funding, setFunding] = useState(false);
 
   useEffect(() => { if (user) { fetchBalance(); fetchTransactions(); } }, [user]);
 
@@ -38,26 +48,70 @@ export default function StudentWalletPage() {
     try {
       const { data: { user: u } } = await supabase.auth.getUser();
       if (!u) return;
-      const { data: orders } = await supabase
-        .from('orders')
-        .select('id, title, final_amount, created_at, status')
-        .eq('student_id', u.id)
-        .eq('status', 'completed')
+      const { data } = await supabase
+        .from('wallet_transactions')
+        .select('id, amount, type, note, created_at, order_id')
+        .eq('user_id', u.id)
         .order('created_at', { ascending: false });
 
-      if (orders) {
-        const txns: Transaction[] = [
-          { id: 'credit-1', amount: 5000, type: 'credit', description: 'Initial wallet funding', created_at: new Date(Date.now() - 7 * 86400000).toISOString() },
-          ...orders.map(o => ({
-            id: o.id, amount: o.final_amount || 0, type: 'debit' as const,
-            description: `Payment for ${o.title}`, created_at: o.created_at, order_id: o.id,
-          })),
-        ];
+      if (data) {
+        const txns: Transaction[] = data.map((t: any) => ({
+          id: t.id,
+          amount: Number(t.amount || 0),
+          type: t.type === 'credit' ? 'credit' : 'debit',
+          description: t.note || (t.type === 'credit' ? 'Wallet funding' : 'Order payment'),
+          created_at: t.created_at,
+          order_id: t.order_id || undefined,
+        }));
         setTransactions(txns);
-        setTotalSpent(orders.reduce((s, o) => s + (o.final_amount || 0), 0));
       }
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
+  };
+
+  const startFunding = async () => {
+    const amount = Number(fundAmount || 0);
+    if (!amount || amount <= 0) return;
+    setFunding(true);
+    try {
+      const { data: { user: u } } = await supabase.auth.getUser();
+      if (!u) throw new Error('Not authenticated');
+
+      const initRes = await fetch('/api/paystack/initialize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount, userId: u.id, email: u.email }),
+      });
+      const init = await initRes.json();
+      if (!initRes.ok) throw new Error(init.error || 'Failed to initialize');
+
+      // @ts-ignore
+      const handler = window.PaystackPop?.setup({
+        key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
+        email: u.email,
+        amount: Math.round(amount * 100),
+        ref: init.reference,
+        onClose: () => setFunding(false),
+        callback: async () => {
+          const verifyRes = await fetch('/api/paystack/verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reference: init.reference, userId: u.id }),
+          });
+          const verify = await verifyRes.json();
+          if (!verifyRes.ok) throw new Error(verify.error || 'Verification failed');
+          await fetchBalance();
+          await fetchTransactions();
+          setFundOpen(false);
+          setFundAmount('');
+        },
+      });
+      handler?.openIframe();
+    } catch (e: any) {
+      console.error(e);
+    } finally {
+      setFunding(false);
+    }
   };
 
   const filtered = transactions.filter(t => filter === 'all' ? true : t.type === filter);
@@ -68,6 +122,7 @@ export default function StudentWalletPage() {
 
   return (
     <div className="sd-content" style={{ animation: 'fadeIn .4s ease both' }}>
+      <Script src="https://js.paystack.co/v1/inline.js" strategy="afterInteractive" />
 
       {/* WALLET HERO */}
       <div className="sd-wallet">
@@ -89,10 +144,33 @@ export default function StudentWalletPage() {
           <div className="sd-wallet-badge">● Active</div>
         </div>
         <div className="sd-wallet-actions">
-          <button className="sd-wallet-btn primary">＋ Fund Wallet</button>
+          <button className="sd-wallet-btn primary" onClick={() => setFundOpen(true)}>＋ Fund Wallet</button>
           <button className="sd-wallet-btn ghost">Transfer</button>
         </div>
       </div>
+
+      {fundOpen && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,.5)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200, padding: 16,
+        }} onClick={() => setFundOpen(false)}>
+          <div
+            style={{ width: '100%', maxWidth: 420, background: 'var(--surf)', borderRadius: 16, padding: 20, border: '1px solid var(--bdr)' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 10, color: 'var(--ink)' }}>Fund Wallet</div>
+            <div style={{ fontSize: 12, color: 'var(--ink3)', marginBottom: 14 }}>Enter the amount you want to add.</div>
+            <input
+              type="number" min={0} placeholder="Amount" value={fundAmount}
+              onChange={(e) => setFundAmount(e.target.value)}
+              style={{ width: '100%', padding: '10px 12px', border: '1.5px solid var(--bdr-m)', borderRadius: 10, background: 'var(--surf2)', color: 'var(--ink)', fontSize: 13, outline: 'none', fontFamily: 'inherit', marginBottom: 12 }}
+            />
+            <button onClick={startFunding} disabled={funding || !fundAmount} className="sd-wallet-btn primary" style={{ width: '100%' }}>
+              {funding ? 'Opening Paystack…' : 'Pay with Paystack'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* STATS ROW */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
@@ -115,16 +193,7 @@ export default function StudentWalletPage() {
           <div className="sd-section-title">Transactions</div>
           <div style={{ display: 'flex', gap: 6 }}>
             {(['all', 'credit', 'debit'] as const).map(f => (
-              <button
-                key={f}
-                onClick={() => setFilter(f)}
-                style={{
-                  padding: '4px 12px', borderRadius: 99, fontSize: 11, fontWeight: 700, cursor: 'pointer', border: 'none',
-                  background: filter === f ? 'var(--green)' : 'var(--surf2)',
-                  color: filter === f ? '#fff' : 'var(--ink2)',
-                  transition: 'all .2s',
-                }}
-              >
+              <button key={f} onClick={() => setFilter(f)} style={{ padding: '4px 12px', borderRadius: 99, fontSize: 11, fontWeight: 700, cursor: 'pointer', border: 'none', background: filter === f ? 'var(--green)' : 'var(--surf2)', color: filter === f ? '#fff' : 'var(--ink2)', transition: 'all .2s' }}>
                 {f === 'all' ? 'All' : f === 'credit' ? 'Funded' : 'Spent'}
               </button>
             ))}
