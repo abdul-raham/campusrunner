@@ -60,7 +60,8 @@ export async function GET() {
       .eq('role', 'runner');
 
     const pendingRunnersCount = (runners || []).filter((runner) => {
-      const status = Array.isArray(runner.runners) ? runner.runners[0]?.verification_status : runner.runners?.verification_status;
+      const r = runner.runners as { verification_status: string } | { verification_status: string }[] | null;
+      const status = Array.isArray(r) ? r[0]?.verification_status : r?.verification_status;
       return !status || status === 'pending';
     }).length;
 
