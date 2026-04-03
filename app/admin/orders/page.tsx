@@ -533,8 +533,8 @@ export default function AdminOrdersPage() {
                           <div className="flex-1">
                             <p className="font-semibold text-slate-900">{runner.full_name}</p>
                             <div className="flex items-center gap-4 text-sm text-slate-500">
-                              <span>⭐ {(runner.runners?.rating  0).toFixed(1)}</span>
-                              <span>📦 {runner.runners?.total_jobs  0} jobs</span>
+                              <span>⭐ {(runner.runners?.rating ?? 0).toFixed(1)}</span>
+                              <span>📦 {runner.runners?.total_jobs ?? 0} jobs</span>
                               <span>🎓 {runner.university}</span>
                             </div>
                           </div>

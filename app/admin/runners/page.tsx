@@ -274,7 +274,7 @@ export default function AdminRunnersPage() {
                       <div className="space-y-2">
                         <div className="flex items-center gap-2 text-sm">
                           <Star className="h-4 w-4 text-slate-500" />
-                          <span className="text-slate-500">Rating: {(runner.runners.rating  0).toFixed(1)}/5.0</span>
+                          <span className="text-slate-500">Rating: {(runner.runners.rating ?? 0).toFixed(1)}/5.0</span>
                         </div>
                         <div className="flex items-center gap-2 text-sm">
                           <CheckCircle className="h-4 w-4 text-slate-500" />
