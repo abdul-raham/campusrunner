@@ -1,33 +1,30 @@
-import { ImageResponse } from 'next/og'
- 
-export const size = {
-  width: 32,
-  height: 32,
-}
-export const contentType = 'image/png'
- 
+import { ImageResponse } from 'next/og';
+
+export const size = { width: 32, height: 32 };
+export const contentType = 'image/png';
+
 export default function Icon() {
   return new ImageResponse(
     (
       <div
         style={{
-          fontSize: 24,
-          background: 'linear-gradient(135deg, #C9952A 0%, #E2B24A 100%)',
           width: '100%',
           height: '100%',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
+          background: '#C9952A',
+          borderRadius: '50%',
           color: 'white',
-          borderRadius: '8px',
-          fontWeight: 'bold',
+          fontSize: 13,
+          fontWeight: 900,
+          letterSpacing: '-0.5px',
+          fontFamily: 'sans-serif',
         }}
       >
         CR
       </div>
     ),
-    {
-      ...size,
-    }
-  )
+    { ...size }
+  );
 }

@@ -105,7 +105,7 @@ export default function LandingPage() {
         <div className="ni">
           <Link className="n-logo" href="/">
             <div className="n-mark">
-              <Image src="/Gemini_Generated_Image_a835kka835kka835.png" alt="CampusRunner" width={36} height={36} style={{ borderRadius: 10 }} />
+              <Image src="/favicon.svg" alt="CampusRunner" width={36} height={36} style={{ borderRadius: 10 }} />
             </div>
             <span className="n-word">
               Campus<b>Runner</b>
@@ -183,7 +183,7 @@ export default function LandingPage() {
               <div className="d-sidebar">
                 <div className="ds-brand">
                   <div className="ds-bicon">
-                    <Image src="/Gemini_Generated_Image_a835kka835kka835.png" alt="CR" width={16} height={16} style={{ borderRadius: 4 }} />
+                    <Image src="/favicon.svg" alt="CR" width={16} height={16} style={{ borderRadius: 4 }} />
                   </div>
                   <div className="ds-bname">
                     Campus

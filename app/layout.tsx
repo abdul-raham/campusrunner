@@ -15,9 +15,9 @@ export const metadata: Metadata = {
     userScalable: false,
   },
   icons: {
-    icon: [{ url: "/logo.png", type: "image/png" }],
-    shortcut: "/logo.png",
-    apple: "/logo.png",
+    icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
+    shortcut: "/favicon.svg",
+    apple: "/favicon.svg",
   },
 };
 

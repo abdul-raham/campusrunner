@@ -63,7 +63,7 @@ export default function RunnerShell({ children }: { children: React.ReactNode })
       <aside className={`sd-sidebar${sidebarOpen ? ' open' : ''}`}>
         <div className="sd-logo">
           <div className="sd-logo-img">
-            <Image src="/Gemini_Generated_Image_a835kka835kka835.png" alt="CampusRunner" width={38} height={38} style={{ objectFit: 'cover', borderRadius: 12 }} />
+            <Image src="/favicon.svg" alt="CampusRunner" width={38} height={38} style={{ objectFit: 'cover', borderRadius: 12 }} />
           </div>
           <div>
             <div className="sd-logo-word">Campus<b>Runner</b></div>
