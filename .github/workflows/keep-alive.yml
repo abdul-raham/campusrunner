@@ -1,0 +1,23 @@
+name: Keep Supabase Alive
+
+on:
+  schedule:
+    # Run every 6 days at 9 AM UTC (to prevent 7-day pause)
+    - cron: '0 9 */6 * *'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  keep-alive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Keep-Alive Endpoint
+        run: |
+          curl -f "${{ secrets.VERCEL_URL }}/api/keep-alive" || exit 1
+          echo "Keep-alive ping successful"
+      
+      - name: Ping Supabase Direct
+        run: |
+          curl -f -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+               -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
+               "${{ secrets.SUPABASE_URL }}/rest/v1/profiles?select=id&limit=1" || exit 1
+          echo "Direct Supabase ping successful"

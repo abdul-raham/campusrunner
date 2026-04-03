@@ -1,0 +1,61 @@
+@import '../student/student.css';
+
+/* Runner palette overrides */
+:root{
+  --green:#0D1F2D;--green-m:#152636;--green-s:#1C3245;--green-t:#243D52;
+  --gold:#C9952A;--gold-l:#E2B24A;--gold-d:#B8861E;--gold-p:#FDF3DC;
+  --bg:#F2F4F7;--surf:#FFFFFF;--surf2:#EDF0F4;--surf3:#E2E6ED;
+  --ink:#0D1F2D;--ink2:#4A5568;--ink3:#94A3B8;
+}
+
+[data-theme="dark"]{
+  --bg:#0a141e;--surf:#0f1e2c;--surf2:#152636;--surf3:#1c3245;
+  --bdr:rgba(255,255,255,.07);--bdr-m:rgba(255,255,255,.12);
+  --ink:#eef2f7;--ink2:#7a9ab8;--ink3:#3a5570;
+  --s1:0 1px 3px rgba(0,0,0,.3);
+  --s2:0 4px 16px rgba(0,0,0,.3);
+  --s3:0 8px 32px rgba(0,0,0,.4);
+}
+
+/* Runner tabs */
+.rd-tabs{
+  display:flex;gap:6px;align-items:center;
+  background:rgba(255,255,255,.75);
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+  border:1px solid rgba(0,0,0,.08);
+  border-radius:14px;
+  padding:6px;
+  box-shadow:0 2px 8px rgba(0,0,0,.05);
+}
+
+[data-theme="dark"] .rd-tabs{
+  background:rgba(15,30,44,.7);
+  border-color:rgba(255,255,255,.08);
+}
+
+.rd-tab{
+  border:none;background:transparent;cursor:pointer;
+  padding:9px 16px;border-radius:10px;
+  font-size:13px;font-weight:700;color:var(--ink3);
+  transition:all .2s;font-family:inherit;
+  display:flex;align-items:center;gap:4px;
+}
+.rd-tab:hover{color:var(--ink);background:rgba(0,0,0,.04)}
+.rd-tab.active{
+  background:var(--gold-p);color:var(--gold-d);
+  box-shadow:0 2px 8px rgba(201,149,42,.15);
+}
+[data-theme="dark"] .rd-tab.active{
+  background:rgba(201,149,42,.15);color:var(--gold-l);
+}
+
+/* spinner (shared with create order) */
+.co-spinner{
+  width:16px;height:16px;
+  border:2px solid rgba(255,255,255,.3);
+  border-top-color:#fff;
+  border-radius:50%;
+  animation:spin .7s linear infinite;
+  display:inline-block;
+}
