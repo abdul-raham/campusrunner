@@ -5,8 +5,8 @@ import { createClient } from '@supabase/supabase-js';
 
 type RunnerStatus = 'pending' | 'approved' | 'rejected' | 'declined' | 'suspended';
 
-const getSessionSupabase = () => {
-  const cookieStore = cookies();
+const getSessionSupabase = async () => {
+  const cookieStore = await cookies();
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -21,7 +21,7 @@ const getSessionSupabase = () => {
 };
 
 const requireAdmin = async () => {
-  const supabase = getSessionSupabase();
+  const supabase = await getSessionSupabase();
   const { data: { user }, error: userError } = await supabase.auth.getUser();
   if (userError || !user) return { error: 'Unauthorized' };
 
