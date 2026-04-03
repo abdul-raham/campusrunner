@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "./admin/admin.css";
+import "./auth.css";
 import SimpleErrorBoundary from '../components/SimpleErrorBoundary';
 import { ThemeProvider } from './components/theme-provider';
 
@@ -15,7 +17,10 @@ export const metadata: Metadata = {
     userScalable: false,
   },
   icons: {
-    icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico", sizes: "any" },
+    ],
     shortcut: "/favicon.svg",
     apple: "/favicon.svg",
   },
