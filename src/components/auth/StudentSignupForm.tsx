@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { supabase } from '@/lib/supabase';
 import { studentSignupSchema } from '@/lib/schemas';
-import type { StudentSignupForm } from '@/types';
+import type { SignupForm as StudentSignupForm } from '@/types';
 import { UNIVERSITIES } from '@/constants';
 import { Zap, Mail, Phone, MapPin, Lock, User, Hash } from 'lucide-react';
 import Image from 'next/image';
