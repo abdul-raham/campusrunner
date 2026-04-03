@@ -1,7 +1,7 @@
-export function BrandMark({ size = 36, gold = false }: { size?: number; gold?: boolean }) {
+export function BrandMark({ size = 36, gold = false, className }: { size?: number; gold?: boolean; className?: string }) {
   return (
     <div
-      className="flex items-center justify-center font-display font-bold text-white flex-shrink-0"
+      className={`flex items-center justify-center font-display font-bold text-white flex-shrink-0${className ? ` ${className}` : ''}`}
       style={{
         width: size,
         height: size,

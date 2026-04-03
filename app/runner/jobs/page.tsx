@@ -77,8 +77,8 @@ export default function RunnerJobsPage() {
           .in('status', ['accepted', 'in_progress'])
           .order('created_at', { ascending: false }),
       ]);
-      setAvailable((avail.data as Job[]) || []);
-      setMyJobs((mine.data as Job[]) || []);
+      setAvailable((avail.data as unknown as Job[]) || []);
+      setMyJobs((mine.data as unknown as Job[]) || []);
     } catch (e) { console.error(e); }
     finally { setLoading(false); setRefreshing(false); }
   };

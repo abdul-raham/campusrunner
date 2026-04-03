@@ -50,8 +50,8 @@ export default function RunnerDashboard() {
             .limit(12),
         ]);
 
-        setAvailableJobs((available.data as JobSummary[]) || []);
-        setActiveJobs((active.data as JobSummary[]) || []);
+        setAvailableJobs((available.data as unknown as JobSummary[]) || []);
+        setActiveJobs((active.data as unknown as JobSummary[]) || []);
 
         const today = new Date().toDateString();
         const earned = (completed.data || [])

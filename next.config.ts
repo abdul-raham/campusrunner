@@ -10,8 +10,8 @@ const nextConfig: NextConfig = {
   },
   images: {
     remotePatterns: [
-      { protocol: "http", hostname: "localhost" },
-      ...(supabaseHost ? [{ protocol: "https", hostname: supabaseHost }] : []),
+      { protocol: "http" as const, hostname: "localhost" },
+      ...(supabaseHost ? [{ protocol: "https" as const, hostname: supabaseHost }] : []),
     ],
   },
   typescript: {

@@ -29,6 +29,9 @@
       "@/components/*": [
         "./components/*"
       ],
+      "@/constants": [
+        "./src/constants/index.ts"
+      ],
       "@/constants/*": [
         "./src/constants/*"
       ],
@@ -37,6 +40,9 @@
       ],
       "@/lib/*": [
         "./src/lib/*"
+      ],
+      "@/types": [
+        "./src/types/index.ts"
       ],
       "@/types/*": [
         "./src/types/*"
@@ -61,6 +67,7 @@
     "**/*.mts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "campusrunner-new-ui"
   ]
 }
