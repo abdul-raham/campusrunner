@@ -47,7 +47,7 @@ export default function LoginPage() {
 
       // Role-based routing
       const role = profile?.role || 'student';
-      router.push(`/${role}`);
+      window.location.replace(`/${role}`);
     } catch (err: any) {
       setError(err?.message || 'Login failed');
     } finally {

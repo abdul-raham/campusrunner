@@ -11,28 +11,13 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
   const router = useRouter();
 
   useEffect(() => {
-    // Only redirect if we're sure the user is not authenticated
-    if (!loading && !user) {
-      window.location.href = '/login';
-      return;
+    if (!loading && (!user || profile?.role !== 'student')) {
+      router.push('/login');
     }
-    
-    // Only redirect if we have a user but wrong role
-    if (!loading && user && profile && profile.role !== 'student') {
-      window.location.href = '/login';
-      return;
-    }
-  }, [user, profile, loading]);
+  }, [user, profile, loading, router]);
 
-  // Show loader while auth is loading or during redirects
-  if (loading || !user || (user && profile && profile.role !== 'student')) {
-    return <PageLoader />;
-  }
-
-  // Show loader if we have user but no profile yet
-  if (user && !profile) {
-    return <PageLoader />;
-  }
+  if (loading && !user) return <PageLoader />;
+  if (!loading && (!user || profile?.role !== 'student')) return null;
 
   return <StudentShell>{children}</StudentShell>;
 }

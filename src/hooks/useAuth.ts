@@ -1,21 +1,17 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useEffect, useState, useRef } from 'react';
-import { createClient } from '@supabase/supabase-js';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+import { useEffect, useState } from 'react';
+import { supabase } from '@/lib/supabase';
+import type { Profile } from '@/types/index';
+import type { User } from '@supabase/supabase-js';
 
 export const useAuth = () => {
-  const [user, setUser] = useState<any>(null);
-  const [profile, setProfile] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
-  const isLoggingOut = useRef(false);
 
   const refreshProfile = async (userId?: string) => {
     const id = userId ?? user?.id;
@@ -29,64 +25,45 @@ export const useAuth = () => {
       setError(profileError.message);
       return null;
     }
-    setProfile(data);
+    setProfile(data as Profile);
     return data;
   };
 
   useEffect(() => {
-    let cancelled = false;
-    
-    const initAuth = async () => {
-      try {
-        const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
-        
-        if (cancelled || isLoggingOut.current) return;
-        
-        if (authError || !authUser) {
-          setUser(null);
-          setProfile(null);
-          setLoading(false);
-          return;
-        }
-        
-        setUser(authUser);
-        await refreshProfile(authUser.id);
-      } catch (err: any) {
-        if (!cancelled && !isLoggingOut.current) {
-          setError(err.message);
-        }
-      } finally {
-        if (!cancelled && !isLoggingOut.current) {
-          setLoading(false);
-        }
-      }
-    };
-
-    initAuth();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (cancelled || isLoggingOut.current) return;
-      
-      if (event === 'SIGNED_OUT' || !session?.user) {
+    // Get authenticated user (secure)
+    supabase.auth.getUser().then(({ data: { user: authUser }, error: authError }) => {
+      if (authError || !authUser) {
         setUser(null);
         setProfile(null);
+        setLoading(false);
         return;
       }
       
-      if (event === 'SIGNED_IN' && session?.user) {
-        setUser(session.user);
-        await refreshProfile(session.user.id);
+      setUser(authUser);
+      
+      // Fetch profile
+      refreshProfile(authUser.id).finally(() => setLoading(false));
+    });
+
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        refreshProfile(session.user.id);
+      } else {
+        setProfile(null);
       }
     });
 
     return () => {
-      cancelled = true;
       subscription.unsubscribe();
     };
   }, []);
 
   useEffect(() => {
-    if (!user?.id || isLoggingOut.current) return;
+    if (!user?.id) return;
     const handler = () => {
       refreshProfile(user.id);
     };
@@ -95,28 +72,10 @@ export const useAuth = () => {
   }, [user?.id]);
 
   const logout = async () => {
-    if (isLoggingOut.current) return;
-    
-    isLoggingOut.current = true;
-    setLoading(true);
-    
-    try {
-      // Clear state immediately
-      setUser(null);
-      setProfile(null);
-      
-      // Sign out from Supabase
-      await supabase.auth.signOut();
-      
-      // Small delay to ensure signout completes
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-    } catch (error) {
-      console.error('Logout error:', error);
-    } finally {
-      // Force redirect regardless of errors
-      window.location.href = '/login';
-    }
+    await supabase.auth.signOut();
+    setUser(null);
+    setProfile(null);
+    router.push('/login');
   };
 
   return { user, profile, loading, error, logout, refreshProfile };
