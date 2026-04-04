@@ -566,27 +566,86 @@ body{
 .sd-overlay.open{display:block}
 
 /* ── RESPONSIVE ── */
+@media(max-width:1200px){
+  .sd-two-col{grid-template-columns:1fr 300px}
+  .sd-stats-col{gap:10px}
+  .sd-stat-card{padding:14px 16px}
+}
+
 @media(max-width:1100px){
   .sd-two-col{grid-template-columns:1fr}
-  .sd-stats-col{flex-direction:row;flex-wrap:wrap}
+  .sd-stats-col{flex-direction:row;flex-wrap:wrap;gap:10px}
   .sd-stat-card{flex:1;min-width:140px}
 }
 
 @media(max-width:900px){
-  .sd-quick-grid{grid-template-columns:repeat(4,1fr)}
+  .sd-quick-grid{grid-template-columns:repeat(3,1fr);gap:10px}
+  .sd-content{padding:20px}
 }
 
 @media(max-width:768px){
-  .sd-sidebar{transform:translateX(-100%)}
+  .sd-sidebar{transform:translateX(-100%);width:280px}
   .sd-sidebar.open{transform:translateX(0)}
   .sd-main{margin-left:0}
   .sd-hamburger{display:flex}
-  .sd-content{padding:16px}
-  .sd-quick-grid{grid-template-columns:repeat(2,1fr)}
-  .sd-wallet{padding:22px 20px}
-  .sd-wallet-amount{font-size:36px}
-  .sd-header{padding:0 16px}
+  .sd-content{padding:16px;gap:20px}
+  .sd-quick-grid{grid-template-columns:repeat(2,1fr);gap:8px}
+  .sd-wallet{padding:20px 18px}
+  .sd-wallet-amount{font-size:32px}
+  .sd-header{padding:0 16px;height:60px}
+  .sd-greeting{font-size:16px}
+  .sd-greeting-sub{font-size:11px}
+  .sd-card{padding:18px}
+  .sd-section-title{font-size:14px}
+  .sd-quick-card{padding:16px 12px}
+  .sd-quick-icon{width:44px;height:44px;font-size:20px}
+  .sd-quick-name{font-size:12px}
+  .sd-quick-sub{font-size:10px}
+  .sd-stats-col{gap:8px}
+  .sd-stat-card{padding:12px 14px;min-width:120px}
+  .sd-stat-val{font-size:18px}
+  .sd-stat-lbl{font-size:10px}
+}
+
+@media(max-width:640px){
+  .sd-content{padding:12px;gap:16px}
+  .sd-quick-grid{grid-template-columns:1fr;gap:8px}
+  .sd-wallet{padding:18px 16px}
+  .sd-wallet-amount{font-size:28px}
+  .sd-wallet-actions{flex-direction:column;gap:8px}
+  .sd-wallet-btn{padding:12px 16px}
+  .sd-header{padding:0 12px;height:56px}
   .sd-greeting{font-size:15px}
+  .sd-card{padding:16px}
+  .sd-quick-card{padding:14px 12px;text-align:left;display:flex;align-items:center;gap:12px}
+  .sd-quick-icon{width:40px;height:40px;font-size:18px;margin:0}
+  .sd-quick-name{font-size:13px;margin-bottom:2px}
+  .sd-quick-sub{font-size:10px}
+  .sd-stats-col{flex-direction:column;gap:8px}
+  .sd-stat-card{min-width:auto;padding:14px 16px}
+  .sd-order-row{padding:10px 12px;gap:10px}
+  .sd-order-row-icon{width:32px;height:32px;font-size:14px}
+  .sd-order-row-title{font-size:12px}
+  .sd-order-row-sub{font-size:10px}
+  .sd-order-row-amt{font-size:12px}
+  .sd-badge{font-size:8px;padding:2px 6px}
+}
+
+@media(max-width:480px){
+  .sd-content{padding:10px;gap:14px}
+  .sd-wallet{padding:16px 14px}
+  .sd-wallet-amount{font-size:24px}
+  .sd-header{padding:0 10px}
+  .sd-card{padding:14px}
+  .sd-section-title{font-size:13px}
+  .sd-quick-card{padding:12px 10px}
+  .sd-quick-icon{width:36px;height:36px;font-size:16px}
+  .sd-quick-name{font-size:12px}
+  .sd-order-row{padding:8px 10px}
+  .sd-order-row-icon{width:28px;height:28px;font-size:12px}
+  .sd-stat-card{padding:12px 14px}
+  .sd-stat-icon{width:36px;height:36px;font-size:16px}
+  .sd-stat-val{font-size:16px}
 }
 
 /* ── NOTIFICATION MODAL ── */

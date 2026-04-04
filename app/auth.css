@@ -458,11 +458,34 @@ body{
 @media(max-width:1024px){
   .auth-shell{grid-template-columns:1fr}
   .auth-left{display:none}
-  .auth-right{padding:48px 20px;min-height:100vh}
+  .auth-right{padding:40px 24px;min-height:100vh}
   .auth-mobile-logo{display:flex}
-  .auth-choice-grid{grid-template-columns:1fr}
+  .auth-choice-grid{grid-template-columns:1fr;gap:12px}
+  .auth-left-stats{grid-template-columns:repeat(4,1fr);gap:8px}
 }
+
+@media(max-width:768px){
+  .auth-right{padding:32px 20px;min-height:100vh;justify-content:flex-start;padding-top:80px}
+  .auth-card{padding:28px 24px;border-radius:20px;width:100%;max-width:none}
+  .auth-right-inner{max-width:none;width:100%}
+  .auth-title{font-size:24px}
+  .auth-choice-card{padding:20px}
+  .auth-choice-icon{width:44px;height:44px}
+  .auth-choice-title{font-size:16px}
+  .auth-theme-btn{top:16px;right:16px;width:36px;height:36px}
+  .auth-mobile-logo{margin-bottom:32px}
+}
+
 @media(max-width:480px){
-  .auth-card{padding:24px 20px;border-radius:24px}
+  .auth-right{padding:24px 16px;padding-top:70px}
+  .auth-card{padding:24px 20px;border-radius:18px}
   .auth-title{font-size:22px}
+  .auth-choice-card{padding:18px}
+  .auth-choice-grid{gap:10px}
+  .auth-left-stats{grid-template-columns:repeat(2,1fr)}
+  .input-glass{padding:12px 12px 12px 38px;font-size:16px}
+  .input-glass.no-icon{padding-left:12px}
+  .primary-button{padding:13px 16px;font-size:16px}
+  .auth-theme-btn{width:34px;height:34px;font-size:14px}
+  .auth-mobile-logo{margin-bottom:24px}
 }

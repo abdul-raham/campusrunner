@@ -27,7 +27,7 @@ export function ServiceGrid() {
         </div>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {services.map((service, idx) => {
           const Icon = service.icon;
           return (
@@ -39,14 +39,14 @@ export function ServiceGrid() {
               whileHover={{ y: -6 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => router.push(`/student/create-order?service=${service.id}`)}
-              className="group rounded-[28px] border border-slate-200/80 bg-slate-50/70 p-5 text-left shadow-sm shadow-slate-900/5 hover:bg-white dark:border-slate-800 dark:bg-slate-900/55 dark:hover:bg-slate-900"
+              className="group rounded-2xl sm:rounded-[28px] border border-slate-200/80 bg-slate-50/70 p-4 sm:p-5 text-left shadow-sm shadow-slate-900/5 hover:bg-white dark:border-slate-800 dark:bg-slate-900/55 dark:hover:bg-slate-900"
             >
-              <div className={`flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br ${service.tone} text-white shadow-lg shadow-slate-900/15`}>
-                <Icon className="h-6 w-6" />
+              <div className={`flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-xl sm:rounded-2xl bg-gradient-to-br ${service.tone} text-white shadow-lg shadow-slate-900/15`}>
+                <Icon className="h-5 w-5 sm:h-6 sm:w-6" />
               </div>
-              <h3 className="mt-5 text-lg font-bold tracking-tight">{service.name}</h3>
-              <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">{service.description}</p>
-              <div className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-sky-600 dark:text-sky-300">
+              <h3 className="mt-4 sm:mt-5 text-base sm:text-lg font-bold tracking-tight">{service.name}</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400 hidden sm:block">{service.description}</p>
+              <div className="mt-4 sm:mt-5 inline-flex items-center gap-2 text-sm font-semibold text-sky-600 dark:text-sky-300">
                 Start request
                 <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
               </div>

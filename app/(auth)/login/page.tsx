@@ -5,7 +5,7 @@ import { LoginFormComponent } from '@/components/auth/LoginForm';
 export default function LoginPage() {
   return (
     <div className="auth-shell">
-      {/* Left Panel */}
+      {/* Left Panel - Hidden on mobile */}
       <div className="auth-left">
         <div className="auth-left-content">
           <div className="auth-logo">
@@ -56,7 +56,7 @@ export default function LoginPage() {
         </div>
       </div>
       
-      {/* Right Panel */}
+      {/* Right Panel - Full width on mobile */}
       <div className="auth-right">
         <button className="auth-theme-btn" onClick={() => {
           const html = document.documentElement;

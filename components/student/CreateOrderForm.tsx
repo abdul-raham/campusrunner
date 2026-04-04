@@ -592,12 +592,34 @@ export function CreateOrderForm() {
         .co-success-title{font-size:24px;font-weight:800;color:var(--ink)}
         .co-success-sub{font-size:14px;color:var(--ink3)}
 
+        @media(max-width:768px){
+          .co-shell{padding:16px;gap:16px}
+          .co-progress{padding:12px 16px;gap:8px}
+          .co-step-label{font-size:10px}
+          .co-card{padding:20px}
+          .co-card-title{font-size:16px}
+          .co-cat-grid{grid-template-columns:repeat(2,1fr);gap:10px}
+          .co-cat-card{padding:14px 10px}
+          .co-cat-icon{font-size:24px;margin-bottom:6px}
+          .co-cat-name{font-size:12px}
+          .co-urgency-row{grid-template-columns:1fr;gap:8px}
+          .co-urgency-card{padding:12px 8px}
+          .co-urgency-icon{font-size:20px}
+          .co-actions{flex-direction:column}
+          .co-btn-back{order:2}
+        }
         @media(max-width:480px){
-          .co-shell{padding:16px}
+          .co-shell{padding:12px;gap:12px}
+          .co-progress{padding:10px 12px}
           .co-step-label{display:none}
-          .co-cat-grid{grid-template-columns:repeat(2,1fr)}
-          .co-item-row{flex-wrap:wrap}
-          .co-price{width:100%}
+          .co-card{padding:16px}
+          .co-cat-grid{grid-template-columns:1fr;gap:8px}
+          .co-item-row{flex-wrap:wrap;gap:6px}
+          .co-qty{width:60px}
+          .co-price{width:100%;margin-top:4px}
+          .co-remove-btn{width:30px;height:30px}
+          .co-urgency-card{padding:10px 6px}
+          .co-btn-next{padding:12px 16px}
         }
       `}</style>
     </div>
