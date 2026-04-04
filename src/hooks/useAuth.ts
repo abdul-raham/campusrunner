@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -15,6 +15,7 @@ export const useAuth = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const isLoggingOut = useRef(false);
 
   const refreshProfile = async (userId?: string) => {
     const id = userId ?? user?.id;
@@ -34,31 +35,47 @@ export const useAuth = () => {
 
   useEffect(() => {
     let cancelled = false;
-    supabase.auth.getUser().then(async ({ data: { user: authUser }, error: authError }) => {
-      if (cancelled) return;
-      if (authError || !authUser) {
-        // Clear invalid or missing refresh token without spamming console
-        if (authError?.message?.toLowerCase().includes('refresh token')) {
-          await supabase.auth.signOut();
+    
+    const initAuth = async () => {
+      try {
+        const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
+        
+        if (cancelled || isLoggingOut.current) return;
+        
+        if (authError || !authUser) {
+          setUser(null);
+          setProfile(null);
+          setLoading(false);
+          return;
         }
+        
+        setUser(authUser);
+        await refreshProfile(authUser.id);
+      } catch (err: any) {
+        if (!cancelled && !isLoggingOut.current) {
+          setError(err.message);
+        }
+      } finally {
+        if (!cancelled && !isLoggingOut.current) {
+          setLoading(false);
+        }
+      }
+    };
+
+    initAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (cancelled || isLoggingOut.current) return;
+      
+      if (event === 'SIGNED_OUT' || !session?.user) {
         setUser(null);
         setProfile(null);
-        setLoading(false);
         return;
       }
       
-      setUser(authUser);
-      refreshProfile(authUser.id).finally(() => setLoading(false));
-    });
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        refreshProfile(session.user.id);
-      } else {
-        setProfile(null);
+      if (event === 'SIGNED_IN' && session?.user) {
+        setUser(session.user);
+        await refreshProfile(session.user.id);
       }
     });
 
@@ -69,7 +86,7 @@ export const useAuth = () => {
   }, []);
 
   useEffect(() => {
-    if (!user?.id) return;
+    if (!user?.id || isLoggingOut.current) return;
     const handler = () => {
       refreshProfile(user.id);
     };
@@ -78,18 +95,26 @@ export const useAuth = () => {
   }, [user?.id]);
 
   const logout = async () => {
-    // Clear state immediately to prevent UI flicker
-    setUser(null);
-    setProfile(null);
+    if (isLoggingOut.current) return;
+    
+    isLoggingOut.current = true;
     setLoading(true);
     
     try {
+      // Clear state immediately
+      setUser(null);
+      setProfile(null);
+      
+      // Sign out from Supabase
       await supabase.auth.signOut();
+      
+      // Small delay to ensure signout completes
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
-      setLoading(false);
-      // Force redirect to login
+      // Force redirect regardless of errors
       window.location.href = '/login';
     }
   };
