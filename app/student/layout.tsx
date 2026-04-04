@@ -12,12 +12,15 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
 
   useEffect(() => {
     if (!loading && (!user || profile?.role !== 'student')) {
-      router.push('/login');
+      // Use window.location.href for immediate redirect
+      window.location.href = '/login';
     }
-  }, [user, profile, loading, router]);
+  }, [user, profile, loading]);
 
-  if (loading && !user) return <PageLoader />;
-  if (!loading && (!user || profile?.role !== 'student')) return null;
+  // Show loader while auth is loading or user is being redirected
+  if (loading || !user || profile?.role !== 'student') {
+    return <PageLoader />;
+  }
 
   return <StudentShell>{children}</StudentShell>;
 }

@@ -78,10 +78,20 @@ export const useAuth = () => {
   }, [user?.id]);
 
   const logout = async () => {
-    await supabase.auth.signOut();
+    // Clear state immediately to prevent UI flicker
     setUser(null);
     setProfile(null);
-    router.push('/login');
+    setLoading(true);
+    
+    try {
+      await supabase.auth.signOut();
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      setLoading(false);
+      // Force redirect to login
+      window.location.href = '/login';
+    }
   };
 
   return { user, profile, loading, error, logout, refreshProfile };

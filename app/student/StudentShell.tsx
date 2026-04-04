@@ -51,7 +51,13 @@ export default function StudentShell({ children }: { children: React.ReactNode }
   }, []);
 
   const handleLogout = async () => {
-    try { await logout(); router.push('/login'); } catch {}
+    try { 
+      await logout(); 
+    } catch (error) {
+      console.error('Logout failed:', error);
+      // Force redirect even if logout fails
+      window.location.href = '/login';
+    }
   };
 
   // page title from pathname

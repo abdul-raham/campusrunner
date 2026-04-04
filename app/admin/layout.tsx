@@ -23,13 +23,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   useEffect(() => {
     if (!loading && (!user || profile?.role !== 'admin')) {
-      router.replace('/login?logged_out=1');
+      router.replace('/login');
     }
   }, [loading, user, profile, router]);
 
   const handleLogout = async () => {
-    await logout();
-    router.push('/login');
+    try {
+      await logout();
+    } catch (error) {
+      console.error('Logout failed:', error);
+      window.location.href = '/login';
+    }
   };
 
   if (loading) {
