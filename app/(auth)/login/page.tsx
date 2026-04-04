@@ -4,7 +4,11 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, Lock, Mail } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({ email: '', password: '' });
@@ -12,7 +16,6 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [showPw, setShowPw] = useState(false);
   const router = useRouter();
-  const { login, isConfigured } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,13 +23,31 @@ export default function LoginPage() {
     setError('');
 
     try {
-      if (!isConfigured) {
-        setError('Supabase not configured. Check environment variables.');
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password,
+      });
+
+      if (authError) {
+        setError(authError.message);
         return;
       }
 
-      await login(formData.email, formData.password);
-      router.push('/student');
+      if (!data.user) {
+        setError('Login failed');
+        return;
+      }
+
+      // Get user profile to determine role
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', data.user.id)
+        .single();
+
+      // Role-based routing
+      const role = profile?.role || 'student';
+      router.push(`/${role}`);
     } catch (err: any) {
       setError(err?.message || 'Login failed');
     } finally {

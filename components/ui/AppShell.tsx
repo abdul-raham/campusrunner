@@ -70,15 +70,17 @@ export function AppShell({
           className="hidden lg:flex lg:w-[290px] lg:flex-col"
         >
           <div className="m-4 flex h-[calc(100vh-2rem)] flex-col rounded-[28px] border border-white/50 bg-white/75 p-5 shadow-xl shadow-slate-900/5 backdrop-blur-xl dark:border-white/10 dark:bg-slate-900/60 dark:shadow-black/20">
-            <div className="mb-8 flex items-center gap-3">
-              <div className="relative">
-                <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${palette.active} opacity-40 blur-xl`} />
-                <BrandMark className="relative h-12 w-12 rounded-2xl ring-1 ring-white/20 dark:ring-white/10" />
-              </div>
-              <div>
-                <p className="text-lg font-black tracking-tight">CampusRunner</p>
-                <p className="text-xs font-medium text-slate-500 dark:text-slate-400">{roleLabel}</p>
-              </div>
+            <div className="mb-8">
+              <Link href={pathname.startsWith('/admin') ? '/admin' : pathname.startsWith('/runner') ? '/runner' : '/student'} className="flex items-center gap-3">
+                <div className="relative">
+                  <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${palette.active} opacity-40 blur-xl`} />
+                  <BrandMark className="relative h-12 w-12 rounded-2xl ring-1 ring-white/20 dark:ring-white/10" />
+                </div>
+                <div>
+                  <p className="text-lg font-black tracking-tight">CampusRunner</p>
+                  <p className="text-xs font-medium text-slate-500 dark:text-slate-400">{roleLabel}</p>
+                </div>
+              </Link>
             </div>
 
             <div className="mb-6 rounded-[28px] border border-white/50 bg-white/70 p-4 shadow-sm shadow-slate-900/5 backdrop-blur dark:border-white/10 dark:bg-slate-900/60 dark:shadow-black/20">

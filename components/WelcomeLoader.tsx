@@ -187,28 +187,42 @@ export default function WelcomeLoader({ onComplete }: { onComplete: () => void }
       </div>
 
       {/* Corner Decorations */}
-      <motion.div
-        animate={{
-          rotate: 360,
-        }}
-        transition={{
-          duration: 20,
-          repeat: Infinity,
-          ease: "linear"
-        }}
-        className="absolute top-10 left-10 w-20 h-20 rounded-full border-2 border-white/20 aspect-square"
-      />
-      <motion.div
-        animate={{
-          rotate: -360,
-        }}
-        transition={{
-          duration: 15,
-          repeat: Infinity,
-          ease: "linear"
-        }}
-        className="absolute bottom-10 right-10 w-16 h-16 rounded-full border-2 border-white/20 aspect-square"
-      />
+      <div className="absolute top-10 left-10 w-20 h-20 flex items-center justify-center">
+        <motion.div
+          animate={{
+            rotate: 360,
+          }}
+          transition={{
+            duration: 20,
+            repeat: Infinity,
+            ease: "linear"
+          }}
+          className="w-full h-full rounded-full border-2 border-white/20"
+          style={{ 
+            willChange: 'transform',
+            backfaceVisibility: 'hidden',
+            transform3d: 'translateZ(0)'
+          }}
+        />
+      </div>
+      <div className="absolute bottom-10 right-10 w-16 h-16 flex items-center justify-center">
+        <motion.div
+          animate={{
+            rotate: -360,
+          }}
+          transition={{
+            duration: 15,
+            repeat: Infinity,
+            ease: "linear"
+          }}
+          className="w-full h-full rounded-full border-2 border-white/20"
+          style={{ 
+            willChange: 'transform',
+            backfaceVisibility: 'hidden',
+            transform3d: 'translateZ(0)'
+          }}
+        />
+      </div>
     </motion.div>
   );
 }
