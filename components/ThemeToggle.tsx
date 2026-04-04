@@ -1,26 +1,22 @@
 'use client';
 
-import { useTheme } from 'next-themes';
+import { useState } from 'react';
 import { Moon, Sun } from 'lucide-react';
-import { motion } from 'framer-motion';
 
 export function ThemeToggle() {
-  const { theme, setTheme } = useTheme();
-  const isDark = theme === 'dark';
+  const [isDark, setIsDark] = useState(false);
+
+  const toggleTheme = () => {
+    setIsDark(!isDark);
+    document.documentElement.classList.toggle('dark');
+  };
 
   return (
-    <motion.button
-      whileTap={{ scale: 0.9 }}
-      onClick={() => setTheme(isDark ? 'light' : 'dark')}
-      className="w-9 h-9 rounded-xl flex items-center justify-center transition-colors"
-      style={{
-        background: 'var(--surface-2)',
-        border: '1px solid var(--border)',
-        color: 'var(--text-secondary)',
-      }}
-      title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+    <button
+      onClick={toggleTheme}
+      className="flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200/80 bg-white/70 text-slate-700 transition hover:bg-white dark:border-slate-800 dark:bg-slate-900/70 dark:text-slate-200 dark:hover:bg-slate-800"
     >
-      {isDark ? <Sun size={15} /> : <Moon size={15} />}
-    </motion.button>
+      {isDark ? <Sun className="h-[18px] w-[18px]" /> : <Moon className="h-[18px] w-[18px]" />}
+    </button>
   );
 }

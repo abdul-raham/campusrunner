@@ -52,7 +52,7 @@ export function MobileNavbar({ userRole = 'student', userName = 'User', userAvat
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-3">
             <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-[#6200EE] to-[#03DAC5] shadow-lg">
-              <Image src="/logo.png" alt="CampusRunner" width={20} height={20} className="rounded-lg" />
+              <Image src="/logo.svg" alt="CampusRunner" width={20} height={20} className="rounded-lg" />
             </div>
             <div>
               <h1 className="text-sm font-black text-[#0B0E11]">CampusRunner</h1>

@@ -100,7 +100,7 @@ export default function AnimatedLoader({ onComplete }: { onComplete: () => void 
             className="absolute inset-2 flex items-center justify-center"
           >
             <Image 
-              src="/logo.png" 
+              src="/logo.svg" 
               alt="CampusRunner" 
               width={48} 
               height={48} 

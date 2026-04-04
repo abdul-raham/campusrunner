@@ -16,7 +16,15 @@ export default function RunnerProfilePage() {
   const [toast, setToast] = useState<string | null>(null);
   const [runnerStats, setRunnerStats] = useState({ rating: 0, total_jobs: 0, verification_status: 'pending' });
   const [earnings, setEarnings] = useState({ total: 0, month: 0 });
-  const [form, setForm] = useState({ full_name: '', phone: '', university: '', hostel_location: '' });
+  const [form, setForm] = useState({
+    full_name: '',
+    phone: '',
+    university: '',
+    hostel_location: '',
+    bank_name: '',
+    bank_account_number: '',
+    bank_account_name: '',
+  });
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -26,6 +34,9 @@ export default function RunnerProfilePage() {
         phone:           (profile as any).phone            || '',
         university:      (profile as any).university       || '',
         hostel_location: (profile as any).hostel_location  || '',
+        bank_name:       (profile as any).bank_name        || '',
+        bank_account_number: (profile as any).bank_account_number || '',
+        bank_account_name:   (profile as any).bank_account_name   || '',
       });
       if ((profile as any).avatar_url) setAvatarUrl((profile as any).avatar_url);
     }
@@ -103,7 +114,7 @@ export default function RunnerProfilePage() {
   if (loading) return <PageLoader />;
 
   return (
-    <div className="sd-content" style={{ animation: 'fadeIn .4s ease both', maxWidth: 640, margin: '0 auto' }}>
+    <div className="sd-content sd-wide" style={{ animation: 'fadeIn .4s ease both' }}>
 
       {/* TOAST */}
       {toast && (
@@ -224,6 +235,57 @@ export default function RunnerProfilePage() {
               <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)' }}>{user?.email}</div>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* PAYOUT DETAILS */}
+      <div style={{ borderRadius: 20, padding: 22, background: 'rgba(255,255,255,.85)', backdropFilter: 'blur(20px) saturate(160%)', WebkitBackdropFilter: 'blur(20px) saturate(160%)', border: '1px solid rgba(0,0,0,.08)', boxShadow: '0 2px 8px rgba(0,0,0,.06),0 8px 24px rgba(0,0,0,.05)' }}>
+        <div className="sd-section-head" style={{ marginBottom: 20 }}>
+          <div className="sd-section-title">Payout Details</div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            {editing && (
+              <button onClick={() => setEditing(false)} style={{ fontSize: 12, fontWeight: 700, padding: '7px 14px', borderRadius: 10, cursor: 'pointer', border: '1.5px solid var(--bdr-m)', background: 'transparent', color: 'var(--ink2)', fontFamily: 'inherit' }}>
+                Cancel
+              </button>
+            )}
+            <button
+              onClick={() => editing ? handleSave() : setEditing(true)}
+              disabled={saving}
+              style={{ fontSize: 12, fontWeight: 700, padding: '7px 18px', borderRadius: 10, cursor: 'pointer', border: 'none', background: editing ? 'var(--green)' : 'var(--surf2)', color: editing ? '#fff' : 'var(--ink2)', transition: 'all .2s', fontFamily: 'inherit' }}
+            >
+              {saving ? 'Saving…' : editing ? '✓ Save Payout' : '✎ Edit Payout'}
+            </button>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {[
+            { label: 'Bank Name', field: 'bank_name', icon: '🏦', type: 'text', placeholder: 'e.g. Access Bank' },
+            { label: 'Account Number', field: 'bank_account_number', icon: '💳', type: 'text', placeholder: '0123456789' },
+            { label: 'Account Name', field: 'bank_account_name', icon: '👤', type: 'text', placeholder: 'Full name on account' },
+          ].map(({ label, field, icon, type, placeholder }) => (
+            <div key={field} style={{ display: 'flex', alignItems: editing ? 'flex-start' : 'center', gap: 12 }}>
+              <div style={{ width: 38, height: 38, borderRadius: 11, background: 'var(--surf2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 17, flexShrink: 0, marginTop: editing ? 2 : 0 }}>{icon}</div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--ink3)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 4 }}>{label}</div>
+                {editing ? (
+                  <input
+                    type={type}
+                    value={form[field as keyof typeof form]}
+                    onChange={e => setForm(f => ({ ...f, [field]: e.target.value }))}
+                    placeholder={placeholder}
+                    style={{ width: '100%', padding: '10px 13px', border: '1.5px solid var(--bdr-m)', borderRadius: 11, background: 'rgba(255,255,255,.9)', color: 'var(--ink)', fontSize: 13, outline: 'none', fontFamily: 'inherit' }}
+                    onFocus={e => e.target.style.borderColor = 'var(--gold)'}
+                    onBlur={e => e.target.style.borderColor = 'var(--bdr-m)'}
+                  />
+                ) : (
+                  <div style={{ fontSize: 14, fontWeight: 600, color: form[field as keyof typeof form] ? 'var(--ink)' : 'var(--ink3)' }}>
+                    {form[field as keyof typeof form] || <span style={{ fontStyle: 'italic', fontSize: 13 }}>Not set — tap Edit to add</span>}
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 

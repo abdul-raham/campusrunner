@@ -2,13 +2,16 @@
 
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase';
-import type { Profile } from '@/types/index';
-import type { User } from '@supabase/supabase-js';
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export const useAuth = () => {
-  const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<Profile | null>(null);
+  const [user, setUser] = useState<any>(null);
+  const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
@@ -25,14 +28,19 @@ export const useAuth = () => {
       setError(profileError.message);
       return null;
     }
-    setProfile(data as Profile);
+    setProfile(data);
     return data;
   };
 
   useEffect(() => {
-    // Get authenticated user (secure)
-    supabase.auth.getUser().then(({ data: { user: authUser }, error: authError }) => {
+    let cancelled = false;
+    supabase.auth.getUser().then(async ({ data: { user: authUser }, error: authError }) => {
+      if (cancelled) return;
       if (authError || !authUser) {
+        // Clear invalid or missing refresh token without spamming console
+        if (authError?.message?.toLowerCase().includes('refresh token')) {
+          await supabase.auth.signOut();
+        }
         setUser(null);
         setProfile(null);
         setLoading(false);
@@ -40,12 +48,9 @@ export const useAuth = () => {
       }
       
       setUser(authUser);
-      
-      // Fetch profile
       refreshProfile(authUser.id).finally(() => setLoading(false));
     });
 
-    // Listen for auth changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
@@ -58,6 +63,7 @@ export const useAuth = () => {
     });
 
     return () => {
+      cancelled = true;
       subscription.unsubscribe();
     };
   }, []);

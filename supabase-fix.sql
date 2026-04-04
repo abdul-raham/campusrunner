@@ -6,6 +6,12 @@
 ALTER TABLE notifications ADD COLUMN IF NOT EXISTS type text DEFAULT 'order_update';
 ALTER TABLE notifications ADD COLUMN IF NOT EXISTS related_order_id uuid REFERENCES orders(id) ON DELETE SET NULL;
 
+-- Profiles: payout/bank details for runners
+ALTER TABLE profiles
+  ADD COLUMN IF NOT EXISTS bank_name text,
+  ADD COLUMN IF NOT EXISTS bank_account_number text,
+  ADD COLUMN IF NOT EXISTS bank_account_name text;
+
 -- 2. Ensure RLS allows authenticated users to read their own notifications
 ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 
@@ -64,6 +70,7 @@ CREATE TABLE IF NOT EXISTS wallet_transactions (
   amount numeric(12,2) NOT NULL,
   type text NOT NULL CHECK (type IN ('credit', 'debit')),
   status text DEFAULT 'completed' CHECK (status IN ('held', 'completed', 'refunded')),
+  reference text,
   note text,
   created_at timestamp DEFAULT now()
 );
@@ -71,6 +78,8 @@ CREATE TABLE IF NOT EXISTS wallet_transactions (
 CREATE INDEX IF NOT EXISTS idx_wallets_user_id ON wallets(user_id);
 CREATE INDEX IF NOT EXISTS idx_wallet_holds_order_id ON wallet_holds(order_id);
 CREATE INDEX IF NOT EXISTS idx_wallet_tx_user_id ON wallet_transactions(user_id);
+ALTER TABLE wallet_transactions ADD COLUMN IF NOT EXISTS reference text;
+CREATE UNIQUE INDEX IF NOT EXISTS idx_wallet_tx_reference ON wallet_transactions(reference) WHERE reference IS NOT NULL;
 
 -- Withdrawal requests
 CREATE TABLE IF NOT EXISTS withdrawal_requests (
@@ -143,3 +152,27 @@ CREATE POLICY "Users can insert own withdrawals"
 ON withdrawal_requests FOR INSERT
 TO authenticated
 WITH CHECK (user_id = auth.uid());
+
+-- Storage: avatars bucket + policies
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('avatars', 'avatars', true)
+ON CONFLICT (id) DO NOTHING;
+
+DROP POLICY IF EXISTS "Avatar read" ON storage.objects;
+CREATE POLICY "Avatar read"
+ON storage.objects FOR SELECT
+TO public
+USING (bucket_id = 'avatars');
+
+DROP POLICY IF EXISTS "Avatar upload" ON storage.objects;
+CREATE POLICY "Avatar upload"
+ON storage.objects FOR INSERT
+TO authenticated
+WITH CHECK (bucket_id = 'avatars' AND auth.uid() = owner);
+
+DROP POLICY IF EXISTS "Avatar update" ON storage.objects;
+CREATE POLICY "Avatar update"
+ON storage.objects FOR UPDATE
+TO authenticated
+USING (bucket_id = 'avatars' AND auth.uid() = owner)
+WITH CHECK (bucket_id = 'avatars' AND auth.uid() = owner);

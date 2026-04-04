@@ -107,7 +107,7 @@ Use this checklist to sync the redesign changes to your current codebase.
 - [ ] `components.json` - Remove Shadcn config
 
 ### Public Assets (Cleanup)
-- [ ] Keep: `public/logo.png`, `public/logo.svg`
+- [ ] Keep: `public/logo.svg`, `public/logo.svg`
 - [ ] Delete: `public/Delivery Exchange Scene.png`
 - [ ] Delete: `public/Delivery in Motion.png`
 - [ ] Delete: `public/favicon.svg`

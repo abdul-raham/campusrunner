@@ -104,7 +104,7 @@ export default function HomePage() {
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 md:px-6">
           <Link href="/" className="flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white dark:bg-gray-800 shadow-lg transition-all duration-300">
-              <Image src="/logo.png" alt="CampusRunner" width={28} height={28} className="rounded-lg" />
+              <Image src="/logo.svg" alt="CampusRunner" width={28} height={28} className="rounded-lg" />
             </div>
             <div>
               <p className="text-lg font-extrabold tracking-tight text-gray-900 dark:text-white">CampusRunner</p>
@@ -278,7 +278,7 @@ export default function HomePage() {
                 <div className="mb-5 flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white dark:bg-gray-800 shadow-lg">
-                      <Image src="/logo.png" alt="CampusRunner" width={28} height={28} className="rounded-lg" />
+                      <Image src="/logo.svg" alt="CampusRunner" width={28} height={28} className="rounded-lg" />
                     </div>
                     <div>
                       <p className="font-extrabold text-gray-900 dark:text-white">CampusRunner</p>
@@ -442,7 +442,7 @@ export default function HomePage() {
           <div>
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white dark:bg-gray-800 shadow-lg">
-                <Image src="/logo.png" alt="CampusRunner" width={24} height={24} className="rounded-lg" />
+                <Image src="/logo.svg" alt="CampusRunner" width={24} height={24} className="rounded-lg" />
               </div>
               <div>
                 <p className="font-extrabold">CampusRunner</p>

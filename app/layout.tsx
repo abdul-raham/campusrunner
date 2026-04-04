@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import "./admin/admin.css";
 import "./auth.css";
 import SimpleErrorBoundary from '../components/SimpleErrorBoundary';
 import { ThemeProvider } from './components/theme-provider';

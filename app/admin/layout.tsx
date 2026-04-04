@@ -6,7 +6,6 @@ import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import { AppShell } from '@/components/ui/AppShell';
-import './admin.css';
 
 const nav = [
   { href: '/admin', label: 'Dashboard', shortLabel: 'Home', icon: LayoutDashboard },
@@ -23,10 +22,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const { user, profile, loading, logout } = useAuth();
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (!loading && (!user || profile?.role !== 'admin')) router.push('/login');
-    }, 300);
-    return () => clearTimeout(timer);
+    if (!loading && (!user || profile?.role !== 'admin')) {
+      router.replace('/login?logged_out=1');
+    }
   }, [loading, user, profile, router]);
 
   const handleLogout = async () => {

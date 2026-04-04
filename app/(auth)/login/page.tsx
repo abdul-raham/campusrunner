@@ -1,11 +1,10 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, Lock, Mail } from 'lucide-react';
-import { AuthShell } from '@/components/auth/AuthShell';
-import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({ email: '', password: '' });
@@ -13,11 +12,7 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [showPw, setShowPw] = useState(false);
   const router = useRouter();
-
-  const canSubmit = useMemo(
-    () => formData.email.trim().length > 0 && formData.password.trim().length > 0,
-    [formData.email, formData.password]
-  );
+  const { login, isConfigured } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,108 +20,94 @@ export default function LoginPage() {
     setError('');
 
     try {
-      const { data, error: loginError } = await supabase.auth.signInWithPassword({
-        email: formData.email,
-        password: formData.password,
-      });
-
-      if (loginError) throw loginError;
-
-      if (data.user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', data.user.id)
-          .single();
-
-        if (profile?.role === 'runner') router.push('/runner');
-        else if (profile?.role === 'student') router.push('/student');
-        else if (profile?.role === 'admin') router.push('/admin');
-        else router.push('/student');
+      if (!isConfigured) {
+        setError('Supabase not configured. Check environment variables.');
+        return;
       }
+
+      await login(formData.email, formData.password);
+      router.push('/student');
     } catch (err: any) {
-      setError(err?.message || 'An error occurred during login');
+      setError(err?.message || 'Login failed');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-
   return (
-    <AuthShell>
-      <div className="auth-card auth-animate">
-        <div className="auth-card-header auth-animate auth-delay-1">
-          <h2 className="auth-title">Welcome back</h2>
-          <p className="auth-sub">Sign in to continue managing your campus errands.</p>
+    <main className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
+        <div className="text-center mb-8">
+          <h1 className="text-2xl font-bold text-gray-900">Welcome back</h1>
+          <p className="text-gray-600 mt-2">Sign in to your account</p>
         </div>
 
-        {error && <div className="auth-alert error auth-animate auth-delay-2">{error}</div>}
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg mb-6">
+            {error}
+          </div>
+        )}
 
-        <form onSubmit={handleSubmit} className="auth-form auth-animate auth-delay-2">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label htmlFor="email" className="auth-label">Email address</label>
-            <div className="input-wrap">
-              <span className="input-icon"><Mail size={15} /></span>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Email
+            </label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
               <input
-                id="email"
-                name="email"
                 type="email"
                 required
                 value={formData.email}
-                onChange={handleChange}
-                className={`input-glass${error ? ' input-error' : ''}`}
+                onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="you@university.edu"
-                autoComplete="email"
               />
             </div>
           </div>
 
           <div>
-            <div className="auth-row">
-              <label htmlFor="password" className="auth-label">Password</label>
-              <Link href="/forgot-password" className="auth-link" style={{ fontSize: 12 }}>
-                Forgot password?
-              </Link>
-            </div>
-            <div className="input-wrap">
-              <span className="input-icon"><Lock size={15} /></span>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Password
+            </label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
               <input
-                id="password"
-                name="password"
                 type={showPw ? 'text' : 'password'}
                 required
                 value={formData.password}
-                onChange={handleChange}
-                className={`input-glass${error ? ' input-error' : ''}`}
+                onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="••••••••"
-                autoComplete="current-password"
               />
               <button
                 type="button"
-                className="input-pw-toggle"
-                onClick={() => setShowPw((v) => !v)}
-                tabIndex={-1}
+                onClick={() => setShowPw(!showPw)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
               >
-                {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
+                {showPw ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
               </button>
             </div>
           </div>
 
-          <button type="submit" disabled={isLoading || !canSubmit} className="primary-button">
-            {isLoading ? <span className="btn-spinner" /> : null}
-            {isLoading ? 'Signing in…' : 'Sign in →'}
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isLoading ? 'Signing in...' : 'Sign in'}
           </button>
         </form>
 
-        <div className="auth-divider auth-animate auth-delay-3" style={{ marginTop: 20 }}>or</div>
-
-        <p className="auth-muted auth-animate auth-delay-4" style={{ textAlign: 'center', marginTop: 16 }}>
-          New to CampusRunner?{' '}
-          <Link href="/signup" className="auth-link">Create an account</Link>
-        </p>
+        <div className="mt-6 text-center">
+          <p className="text-gray-600">
+            Don't have an account?{' '}
+            <Link href="/signup" className="text-blue-600 hover:text-blue-700 font-medium">
+              Sign up
+            </Link>
+          </p>
+        </div>
       </div>
-    </AuthShell>
+    </main>
   );
 }

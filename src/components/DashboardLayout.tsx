@@ -103,7 +103,7 @@ export default function DashboardLayout({ children, userRole }: LayoutProps) {
         <div className="text-center">
           <div className="w-12 h-12 bg-gradient-to-br from-sky-500 to-cyan-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <Image 
-              src="/logo.png" 
+              src="/logo.svg" 
               alt="CampusRunner" 
               width={28} 
               height={28}
@@ -128,7 +128,7 @@ export default function DashboardLayout({ children, userRole }: LayoutProps) {
           <div className="flex items-center gap-3 px-6 py-8 border-b border-slate-800">
             <div className="w-10 h-10 bg-gradient-to-br from-sky-500 to-cyan-500 rounded-xl flex items-center justify-center shadow-lg">
               <Image 
-                src="/logo.png" 
+                src="/logo.svg" 
                 alt="CampusRunner" 
                 width={24} 
                 height={24}
@@ -226,7 +226,7 @@ export default function DashboardLayout({ children, userRole }: LayoutProps) {
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 bg-gradient-to-br from-sky-500 to-cyan-500 rounded-lg flex items-center justify-center shadow-md">
                 <Image 
-                  src="/logo.png" 
+                  src="/logo.svg" 
                   alt="CampusRunner" 
                   width={20} 
                   height={20}

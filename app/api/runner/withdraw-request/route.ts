@@ -34,11 +34,14 @@ export async function POST(req: Request) {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('role, full_name')
+    .select('role, full_name, bank_name, bank_account_number, bank_account_name')
     .eq('id', user.id)
     .single();
   if (profile?.role !== 'runner') {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
+  if (!profile.bank_name || !profile.bank_account_number || !profile.bank_account_name) {
+    return NextResponse.json({ error: 'Add payout details in your profile first.' }, { status: 400 });
   }
 
   const body = await req.json().catch(() => null);

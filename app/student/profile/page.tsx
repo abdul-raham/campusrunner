@@ -104,7 +104,7 @@ export default function StudentProfilePage() {
   if (loading) return <PageLoader />;
 
   return (
-    <div className="sd-content" style={{ animation: 'fadeIn .4s ease both', maxWidth: 640, margin: '0 auto' }}>
+    <div className="sd-content sd-wide" style={{ animation: 'fadeIn .4s ease both' }}>
 
       {/* TOAST */}
       {toast && (

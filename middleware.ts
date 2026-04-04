@@ -43,7 +43,8 @@ export async function middleware(req: NextRequest) {
     }
     
     // Redirect authenticated users away from login/forgot-password/reset-password
-    if (session && (pathname === '/login' || pathname === '/forgot-password' || pathname === '/reset-password')) {
+    const allowLogin = req.nextUrl.searchParams.get('logged_out') === '1';
+    if (session && !allowLogin && (pathname === '/login' || pathname === '/forgot-password' || pathname === '/reset-password')) {
       const { data: profile } = await supabase
         .from('profiles')
         .select('role')

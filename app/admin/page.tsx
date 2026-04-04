@@ -54,17 +54,17 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      <section className="glass-card overflow-hidden p-5 sm:p-6 lg:p-8">
+      <section className="rounded-[32px] border border-white/60 bg-white/70 shadow-xl shadow-slate-900/5 backdrop-blur-xl overflow-hidden p-5 sm:p-6 lg:p-8">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <div className="inline-flex items-center gap-2 rounded-full bg-amber-500/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.18em] text-amber-700 dark:text-amber-300">
               <Activity className="h-4 w-4" /> Admin command center
             </div>
-            <h1 className="dashboard-title mt-4">Run the whole platform from one clean control surface.</h1>
-            <p className="dashboard-subtitle max-w-2xl">See growth, review runner approvals, and stay ahead of order operations with a sharper dashboard experience.</p>
+            <h1 className="text-3xl font-black tracking-tight sm:text-4xl mt-4">Run the whole platform from one clean control surface.</h1>
+            <p className="mt-4 text-lg leading-7 text-slate-600 dark:text-slate-300 max-w-2xl">See growth, review runner approvals, and stay ahead of order operations with a sharper dashboard experience.</p>
           </div>
           <div className="rounded-[24px] border border-white/60 bg-white/70 px-4 py-3 text-sm dark:border-white/10 dark:bg-slate-900/60">
-            <p className="metric-label">Last updated</p>
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Last updated</p>
             <p className="mt-1 font-semibold">{lastUpdated ? lastUpdated.toLocaleTimeString() : 'Loading...'}</p>
           </div>
         </div>
@@ -74,22 +74,22 @@ export default function AdminDashboard() {
         {cards.map((card, index) => {
           const Icon = card.icon;
           return (
-            <motion.div key={card.label} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.05 }} className="stat-card">
+            <motion.div key={card.label} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.05 }} className="rounded-[28px] border border-white/60 bg-white/70 p-6 shadow-lg shadow-slate-900/5 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-xl dark:border-white/10 dark:bg-slate-950/60 dark:shadow-black/20 dark:hover:shadow-black/30">
               <div className={`flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br ${card.tone} text-white shadow-lg shadow-slate-900/15`}>
                 <Icon className="h-5 w-5" />
               </div>
-              <p className="metric-label mt-4">{card.label}</p>
-              <p className="metric-value mt-2">{loading ? '...' : card.value}</p>
+              <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400 mt-4">{card.label}</p>
+              <p className="text-3xl font-black tracking-tight mt-2">{loading ? '...' : card.value}</p>
             </motion.div>
           );
         })}
       </section>
 
       <section className="grid gap-4 xl:grid-cols-[1.05fr_0.95fr]">
-        <div className="section-shell">
+        <div className="rounded-[32px] border border-white/60 bg-white/70 p-6 shadow-lg shadow-slate-900/5 backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/60 dark:shadow-black/20">
           <div className="mb-4 flex items-center justify-between">
             <div>
-              <p className="metric-label">Operations</p>
+              <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Operations</p>
               <h2 className="mt-1 text-2xl font-black tracking-tight">Priority actions</h2>
             </div>
           </div>
@@ -109,8 +109,8 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        <div className="section-shell">
-          <p className="metric-label">Health snapshot</p>
+        <div className="rounded-[32px] border border-white/60 bg-white/70 p-6 shadow-lg shadow-slate-900/5 backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/60 dark:shadow-black/20">
+          <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Health snapshot</p>
           <h2 className="mt-1 text-2xl font-black tracking-tight">Platform status</h2>
           <div className="mt-5 space-y-3">
             {[

@@ -54,7 +54,7 @@ CREATE POLICY "Users can insert own profile" ON profiles FOR INSERT WITH CHECK (
 
 ## Logo Usage
 
-The app now uses `/public/logo.png` for:
+The app now uses `/public/logo.svg` for:
 - Favicon
 - Header logo
 - Authentication forms

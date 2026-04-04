@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { supabase } from '@/lib/supabase';
+import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { studentSignupSchema } from '@/lib/schemas';
 import type { SignupForm as StudentSignupForm } from '@/types';
 import { UNIVERSITIES } from '@/constants';
@@ -36,6 +36,11 @@ export function StudentSignupForm() {
     try {
       setLoading(true);
       setError(null);
+
+      if (!isSupabaseConfigured) {
+        setError('Supabase is not configured. Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in Vercel, then redeploy.');
+        return;
+      }
 
       // Sign up with Supabase Auth (no email confirmation)
       const { data: authData, error: authError } = await supabase.auth.signUp(
@@ -100,7 +105,7 @@ export function StudentSignupForm() {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div className="mb-8 flex items-center justify-center gap-3">
         <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white shadow-lg">
-          <Image src="/logo.png" alt="CampusRunner" width={28} height={28} className="rounded-lg" />
+          <Image src="/logo.svg" alt="CampusRunner" width={28} height={28} className="rounded-lg" />
         </div>
         <div>
           <p className="text-lg font-extrabold tracking-tight">CampusRunner</p>

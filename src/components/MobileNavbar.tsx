@@ -13,7 +13,7 @@ export function MobileNavbar({ userRole, userName }: { userRole: string; userNam
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#6200EE] to-[#03DAC5] p-0.5">
             <div className="w-full h-full rounded-lg bg-white flex items-center justify-center">
-              <Image src="/logo.png" alt="CampusRunner" width={20} height={20} className="rounded-md" />
+              <Image src="/logo.svg" alt="CampusRunner" width={20} height={20} className="rounded-md" />
             </div>
           </div>
           <span className="font-bold text-gray-900">CampusRunner</span>

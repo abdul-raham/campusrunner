@@ -246,6 +246,11 @@ body{
   display:flex;flex-direction:column;gap:24px;
   animation:fadeIn .4s ease both;
 }
+.sd-content.sd-wide{
+  max-width:none;
+  margin:0;
+  padding:20px 24px;
+}
 
 /* ── WALLET CARD ── */
 .sd-wallet{

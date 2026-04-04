@@ -91,7 +91,7 @@ export default function WelcomeLoader({ onComplete }: { onComplete: () => void }
             }}
           >
             <Image 
-              src="/logo.png" 
+              src="/logo.svg" 
               alt="CampusRunner" 
               width={56} 
               height={56} 
@@ -196,7 +196,7 @@ export default function WelcomeLoader({ onComplete }: { onComplete: () => void }
           repeat: Infinity,
           ease: "linear"
         }}
-        className="absolute top-10 left-10 h-20 w-20 rounded-full border-2 border-white/20"
+        className="absolute top-10 left-10 w-20 h-20 rounded-full border-2 border-white/20 aspect-square"
       />
       <motion.div
         animate={{
@@ -207,7 +207,7 @@ export default function WelcomeLoader({ onComplete }: { onComplete: () => void }
           repeat: Infinity,
           ease: "linear"
         }}
-        className="absolute bottom-10 right-10 h-16 w-16 rounded-full border-2 border-white/20"
+        className="absolute bottom-10 right-10 w-16 h-16 rounded-full border-2 border-white/20 aspect-square"
       />
     </motion.div>
   );

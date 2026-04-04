@@ -56,14 +56,20 @@ export function AppShell({
   const palette = accentMap[accent];
 
   return (
-    <div className="app-bg min-h-screen text-slate-900 dark:text-slate-50">
+    <div
+      className="min-h-screen text-slate-900 dark:text-slate-50"
+      style={{
+        background:
+          'radial-gradient(ellipse 70% 40% at 8% 0%, rgba(201,149,42,.12), transparent 60%), radial-gradient(ellipse 50% 60% at 90% 100%, rgba(13,31,45,.08), transparent 60%), #f2f4f7',
+      }}
+    >
       <div className="mx-auto flex min-h-screen w-full max-w-[1600px] gap-0 lg:px-4 lg:py-4">
         <motion.aside
           initial={{ opacity: 0, x: -24 }}
           animate={{ opacity: 1, x: 0 }}
           className="hidden lg:flex lg:w-[290px] lg:flex-col"
         >
-          <div className="glass-panel m-4 flex h-[calc(100vh-2rem)] flex-col p-5">
+          <div className="m-4 flex h-[calc(100vh-2rem)] flex-col rounded-[28px] border border-white/50 bg-white/75 p-5 shadow-xl shadow-slate-900/5 backdrop-blur-xl dark:border-white/10 dark:bg-slate-900/60 dark:shadow-black/20">
             <div className="mb-8 flex items-center gap-3">
               <div className="relative">
                 <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${palette.active} opacity-40 blur-xl`} />
