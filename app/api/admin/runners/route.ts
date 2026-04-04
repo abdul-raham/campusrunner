@@ -122,46 +122,34 @@ export async function PATCH(req: Request) {
   try {
     const { data: existingRunner, error: findError } = await adminClient
       .from('runners')
-      .select('id, profile_id, student_id_number')
+      .select('id')
       .eq('profile_id', profileId)
       .maybeSingle();
 
     if (findError) throw findError;
 
+    const normalized = status === 'declined' ? 'rejected' : status;
+
     if (!existingRunner) {
-      const { data: profile } = await adminClient
-        .from('profiles')
-        .select('matric_number')
-        .eq('id', profileId)
-        .single();
-
-      const studentIdNumber = profile?.matric_number || `PENDING-${profileId.slice(0, 8)}`;
-
       const { error: insertError } = await adminClient
         .from('runners')
-        .insert({
-          profile_id: profileId,
-          student_id_number: studentIdNumber,
-          verification_status: status === 'declined' ? 'rejected' : status,
-        });
-
+        .insert({ profile_id: profileId, verification_status: normalized });
       if (insertError) throw insertError;
     } else {
       const { error: updateError } = await adminClient
         .from('runners')
-        .update({ verification_status: status === 'declined' ? 'rejected' : status })
+        .update({ verification_status: normalized })
         .eq('profile_id', profileId);
-
       if (updateError) throw updateError;
     }
 
-    const title = status === 'approved' ? 'Runner Approved' : 'Runner Application Update';
+    const title = normalized === 'approved' ? 'Runner Approved' : 'Runner Application Update';
     const message =
-      status === 'approved'
+      normalized === 'approved'
         ? 'Your runner account has been approved. You can now accept jobs.'
-        : status === 'rejected' || status === 'declined'
+        : normalized === 'rejected'
           ? 'Your runner application was not approved. Please contact support.'
-          : `Your runner status is now "${status}".`;
+          : `Your runner status is now "${normalized}".`;
 
     await adminClient.from('notifications').insert({
       user_id: profileId,
