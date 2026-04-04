@@ -2,8 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Eye, EyeOff, Mail, Lock, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, ArrowRight } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 export function LoginFormComponent() {
@@ -42,128 +41,109 @@ export function LoginFormComponent() {
 
   if (success) {
     return (
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="flex flex-col items-center justify-center py-8 gap-4"
-      >
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ type: 'spring', stiffness: 200, delay: 0.1 }}
-          className="w-16 h-16 rounded-2xl flex items-center justify-center"
-          style={{ background: 'rgba(0,214,143,0.15)', border: '1px solid var(--emerald)' }}
-        >
-          <CheckCircle2 size={32} className="text-[var(--emerald)]" />
-        </motion.div>
-        <div className="text-center">
-          <p className="font-display font-bold text-[var(--text-primary)] text-lg">Welcome back!</p>
-          <p className="text-sm text-[var(--text-muted)] mt-1">Redirecting you now...</p>
+      <div className="auth-animate" style={{ textAlign: 'center', padding: '32px 0' }}>
+        <div style={{ 
+          width: 64, 
+          height: 64, 
+          borderRadius: 20, 
+          background: 'rgba(22,163,74,0.1)', 
+          border: '1px solid var(--ok)', 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center', 
+          margin: '0 auto 16px',
+          fontSize: 32
+        }}>
+          ✓
         </div>
-        <div className="w-6 h-6 rounded-full border-2 border-[var(--blue-vivid)] border-t-transparent animate-spin" />
-      </motion.div>
+        <h3 className="auth-title" style={{ fontSize: 18, marginBottom: 8 }}>Welcome back!</h3>
+        <p className="auth-sub" style={{ marginBottom: 20 }}>Redirecting you now...</p>
+        <div className="btn-spinner" style={{ margin: '0 auto' }}></div>
+      </div>
     );
   }
 
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-      <div className="text-center mb-8">
-        <motion.div
-          initial={{ scale: 0, rotate: -90 }}
-          animate={{ scale: 1, rotate: 0 }}
-          transition={{ type: 'spring', stiffness: 200, delay: 0.2 }}
-          className="logo-mark w-14 h-14 text-lg mx-auto mb-4"
-        >
-          CR
-        </motion.div>
-        <h1 className="font-display text-2xl font-bold text-[var(--text-primary)]">Sign in</h1>
-        <p className="text-sm text-[var(--text-muted)] mt-1">Access your CampusRunner account</p>
+    <div>
+      <div className="auth-card-header">
+        <h1 className="auth-title">Sign in</h1>
+        <p className="auth-sub">Access your CampusRunner account</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      {error && (
+        <div className="auth-alert error">
+          {error}
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="auth-form">
         <div>
-          <label className="section-label block mb-2">Email</label>
-          <div className="input-wrapper">
+          <label className="auth-label">Email</label>
+          <div className="input-wrap">
             <Mail size={16} className="input-icon" />
             <input
               type="email"
               value={email}
               onChange={e => setEmail(e.target.value)}
               placeholder="your@email.com"
-              className="input-field"
+              className="input-glass"
               required
             />
           </div>
         </div>
 
         <div>
-          <div className="flex items-center justify-between mb-2">
-            <label className="section-label">Password</label>
-            <Link href="/forgot-password" className="text-xs hover:underline" style={{ color: 'var(--blue-vivid)' }}>
+          <div className="auth-row">
+            <label className="auth-label">Password</label>
+            <Link href="/forgot-password" className="auth-link" style={{ fontSize: 12 }}>
               Forgot?
             </Link>
           </div>
-          <div className="input-wrapper">
+          <div className="input-wrap">
             <Lock size={16} className="input-icon" />
             <input
               type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={e => setPassword(e.target.value)}
               placeholder="••••••••"
-              className="input-field"
-              style={{ paddingRight: 44 }}
+              className="input-glass"
               required
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors"
-              style={{ color: 'var(--text-muted)' }}
+              className="input-pw-toggle"
             >
               {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
           </div>
         </div>
 
-        <AnimatePresence>
-          {error && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="badge badge-error w-full justify-center py-3"
-              style={{ borderRadius: 12 }}
-            >
-              {error}
-            </motion.div>
-          )}
-        </AnimatePresence>
-
         <button
           type="submit"
           disabled={isLoading}
-          className="btn-primary w-full mt-2"
-          style={{ opacity: isLoading ? 0.7 : 1 }}
+          className="primary-button"
         >
           {isLoading ? (
-            <div className="w-5 h-5 rounded-full border-2 border-white border-t-transparent animate-spin" />
+            <div className="btn-spinner" />
           ) : (
             <>Sign In <ArrowRight size={16} /></>
           )}
         </button>
       </form>
 
-      <div className="mt-6 pt-6 border-t border-[var(--border)]">
-        <p className="text-center text-sm text-[var(--text-muted)] mb-3">Don't have an account?</p>
-        <div className="grid grid-cols-2 gap-3">
-          <Link href="/student-signup" className="btn-ghost text-sm text-center" style={{ justifyContent: 'center' }}>
-            As Student
-          </Link>
-          <Link href="/runner-signup" className="btn-ghost text-sm text-center" style={{ justifyContent: 'center', color: 'var(--amber)' }}>
-            As Runner ⚡
-          </Link>
-        </div>
+      <div className="auth-divider">Don't have an account?</div>
+      
+      <div className="auth-choice-grid">
+        <Link href="/student-signup" className="auth-choice-card" style={{ textAlign: 'center', padding: 16 }}>
+          <div className="auth-choice-title" style={{ fontSize: 14, marginBottom: 4 }}>As Student</div>
+          <div className="auth-choice-text" style={{ fontSize: 12 }}>Order errands</div>
+        </Link>
+        <Link href="/runner-signup" className="auth-choice-card" style={{ textAlign: 'center', padding: 16 }}>
+          <div className="auth-choice-title" style={{ fontSize: 14, marginBottom: 4, color: 'var(--gold)' }}>As Runner ⚡</div>
+          <div className="auth-choice-text" style={{ fontSize: 12 }}>Earn money</div>
+        </Link>
       </div>
-    </motion.div>
+    </div>
   );
 }
