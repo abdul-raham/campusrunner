@@ -68,8 +68,13 @@ export default function OrderDetailPage() {
 
   useEffect(() => {
     fetch();
+    // real-time subscription
+    const channel = supabase
+      .channel(`order-${id}`)
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders', filter: `id=eq.${id}` }, () => fetch())
+      .subscribe();
     const t = setInterval(fetch, 20000);
-    return () => clearInterval(t);
+    return () => { clearInterval(t); supabase.removeChannel(channel); };
   }, [id]);
 
   async function fetch() {

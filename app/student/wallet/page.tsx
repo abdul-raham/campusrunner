@@ -145,7 +145,6 @@ export default function StudentWalletPage() {
         </div>
         <div className="sd-wallet-actions">
           <button className="sd-wallet-btn primary" onClick={() => setFundOpen(true)}>＋ Fund Wallet</button>
-          <button className="sd-wallet-btn ghost">Transfer</button>
         </div>
       </div>
 

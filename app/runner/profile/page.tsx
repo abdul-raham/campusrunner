@@ -108,8 +108,8 @@ export default function RunnerProfilePage() {
   };
 
   const initials = form.full_name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'RN';
-  const verColor = runnerStats.verification_status === 'verified' ? 'var(--ok)' : runnerStats.verification_status === 'rejected' ? 'var(--err)' : 'var(--warn)';
-  const verBg    = runnerStats.verification_status === 'verified' ? 'var(--ok-bg)' : runnerStats.verification_status === 'rejected' ? 'var(--err-bg)' : 'var(--warn-bg)';
+  const verColor = ['approved','verified'].includes(runnerStats.verification_status) ? 'var(--ok)' : runnerStats.verification_status === 'rejected' ? 'var(--err)' : 'var(--warn)';
+  const verBg    = ['approved','verified'].includes(runnerStats.verification_status) ? 'var(--ok-bg)' : runnerStats.verification_status === 'rejected' ? 'var(--err-bg)' : 'var(--warn-bg)';
 
   if (loading) return <PageLoader />;
 
@@ -150,7 +150,7 @@ export default function RunnerProfilePage() {
             </div>
             <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={e => handleAvatar(e.target.files?.[0])} />
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 13px', borderRadius: 99, fontSize: 11, fontWeight: 700, background: verBg, color: verColor, marginBottom: 6, textTransform: 'capitalize' }}>
-              {runnerStats.verification_status === 'verified' ? '✓' : '⏳'} {runnerStats.verification_status}
+              {['approved','verified'].includes(runnerStats.verification_status) ? '✓' : '⏳'} {['approved','verified'].includes(runnerStats.verification_status) ? 'Approved' : runnerStats.verification_status}
             </span>
           </div>
 

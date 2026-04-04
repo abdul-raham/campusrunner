@@ -21,13 +21,14 @@ export default function RunnerDashboard() {
   const [availableJobs, setAvailableJobs] = useState<JobSummary[]>([]);
   const [activeJobs, setActiveJobs] = useState<JobSummary[]>([]);
   const [todayEarnings, setTodayEarnings] = useState(0);
+  const [walletBalance, setWalletBalance] = useState(0);
 
   useEffect(() => {
     if (!profile?.id) return;
     const fetchData = async () => {
       setLoading(true);
       try {
-        const [available, active, completed] = await Promise.all([
+        const [available, active, completed, wallet] = await Promise.all([
           supabase
             .from('orders')
             .select('id,title,budget_amount,created_at,status,service_categories(name)')
@@ -48,10 +49,16 @@ export default function RunnerDashboard() {
             .eq('status', 'completed')
             .order('completed_at', { ascending: false })
             .limit(12),
+          supabase
+            .from('wallets')
+            .select('balance')
+            .eq('user_id', profile.id)
+            .maybeSingle(),
         ]);
 
         setAvailableJobs((available.data as unknown as JobSummary[]) || []);
         setActiveJobs((active.data as unknown as JobSummary[]) || []);
+        setWalletBalance(Number(wallet.data?.balance || 0));
 
         const today = new Date().toDateString();
         const earned = (completed.data || [])
@@ -76,12 +83,12 @@ export default function RunnerDashboard() {
       <div className="sd-wallet">
         <div className="sd-wallet-top">
           <div>
-            <div className="sd-wallet-label">Runner Wallet</div>
+            <div className="sd-wallet-label">Wallet Balance</div>
             <div className="sd-wallet-amount">
               <sup>₦</sup>
-              {todayEarnings.toLocaleString()}
+              {walletBalance.toLocaleString()}
             </div>
-            <div className="sd-wallet-change">Today&apos;s earnings</div>
+            <div className="sd-wallet-change">Today earned: ₦{todayEarnings.toLocaleString()}</div>
           </div>
           <div className="sd-wallet-badge">● Online</div>
         </div>

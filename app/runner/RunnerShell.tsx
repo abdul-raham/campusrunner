@@ -9,11 +9,12 @@ import { useNotifications } from '@/hooks/useNotifications';
 import './runner.css';
 
 const navItems = [
-  { name: 'Dashboard', href: '/runner', icon: '⊞' },
-  { name: 'Jobs', href: '/runner/jobs', icon: '💼' },
-  { name: 'Active Jobs', href: '/runner/jobs/active', icon: '🏃' },
-  { name: 'Earnings', href: '/runner/earnings', icon: '💰' },
-  { name: 'Profile', href: '/runner/profile', icon: '👤' },
+  { name: 'Dashboard',    href: '/runner',                icon: '⊞' },
+  { name: 'Jobs',         href: '/runner/jobs',           icon: '💼' },
+  { name: 'Active Jobs',  href: '/runner/jobs/active',    icon: '🏃' },
+  { name: 'Earnings',     href: '/runner/earnings',       icon: '💰' },
+  { name: 'Notifications',href: '/runner/notifications',  icon: '🔔' },
+  { name: 'Profile',      href: '/runner/profile',        icon: '👤' },
 ];
 
 export default function RunnerShell({ children }: { children: React.ReactNode }) {
