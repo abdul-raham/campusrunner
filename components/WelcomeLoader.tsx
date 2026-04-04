@@ -201,7 +201,6 @@ export default function WelcomeLoader({ onComplete }: { onComplete: () => void }
           style={{ 
             willChange: 'transform',
             backfaceVisibility: 'hidden',
-            transform3d: 'translateZ(0)'
           }}
         />
       </div>
@@ -219,7 +218,6 @@ export default function WelcomeLoader({ onComplete }: { onComplete: () => void }
           style={{ 
             willChange: 'transform',
             backfaceVisibility: 'hidden',
-            transform3d: 'translateZ(0)'
           }}
         />
       </div>

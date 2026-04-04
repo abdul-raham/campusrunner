@@ -113,126 +113,43 @@ export function CreateOrderForm() {
       } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      // Check wallet balance
-      const { data: wallet } = await supabase
-        .from('wallets')
-        .select('id, balance, user_id, student_id')
-        .or(`user_id.eq.${user.id},student_id.eq.${user.id}`)
-        .maybeSingle();
-
-      if (!wallet)
-        throw new Error('Wallet not found. Please fund your wallet first.');
-      const balance = Number(wallet.balance || 0);
-      if (balance < total)
-        throw new Error(
-          'Insufficient balance. Fund your wallet to place this order.'
-        );
-
-      // Create order
-      const { data: order, error: oErr } = await supabase
-        .from('orders')
-        .insert([
-          {
-            student_id: user.id,
-            service_category_id: form.categoryId,
-            title: form.title,
-            description: form.description,
-            budget_amount: itemsSubtotal,
-            final_amount: total,
-            platform_fee: serviceFee,
-            runner_payout: Math.max(0, total - serviceFee),
-            pickup_location: form.pickupLocation,
-            delivery_location: form.deliveryLocation,
-            urgency_level: form.urgency,
-            status: 'pending',
-            payment_status: 'paid',
-          },
-        ])
-        .select()
-        .single();
-      if (oErr) throw new Error(oErr.message);
-
-      const validItems = form.items.filter(
-        (i) => i.name.trim() && parseFloat(i.price || '0') > 0
-      );
-      if (validItems.length > 0) {
-        const itemsPayload = validItems.map((i) => ({
-          order_id: order.id,
-          item_name: i.name,
-          quantity: i.quantity || 1,
-          price: parseFloat(i.price),
-        }));
-        const { error: itemsErr } = await supabase
-          .from('order_items')
-          .insert(itemsPayload);
-        if (itemsErr) throw itemsErr;
-      }
-
-      const metaRows = [
-        {
-          order_id: order.id,
-          meta_key: 'delivery_fee',
-          meta_value: String(deliveryFee),
-        },
-        {
-          order_id: order.id,
-          meta_key: 'items_subtotal',
-          meta_value: String(itemsSubtotal),
-        },
-        {
-          order_id: order.id,
-          meta_key: 'service_fee',
-          meta_value: String(serviceFee),
-        },
-      ];
-      if (form.notes.trim())
-        metaRows.push({
-          order_id: order.id,
-          meta_key: 'notes',
-          meta_value: form.notes.trim(),
-        });
-      await supabase.from('order_meta').insert(metaRows);
-
-      // Hold funds in wallet
-      const newBalance = Math.max(0, balance - total);
-      const walletKey = (wallet as any).user_id ? 'user_id' : 'student_id';
-      const { error: walletErr } = await supabase
-        .from('wallets')
-        .update({ balance: newBalance, updated_at: new Date().toISOString() })
-        .eq(walletKey, user.id);
-      if (walletErr) throw walletErr;
-
-      await supabase.from('wallet_holds').insert({
-        user_id: user.id,
-        order_id: order.id,
-        amount: total,
-        status: 'held',
-      });
-
-      await supabase.from('wallet_transactions').insert({
-        user_id: user.id,
-        order_id: order.id,
-        amount: total,
-        type: 'debit',
-        status: 'held',
-        note: 'Funds held for order placement',
-      });
-
-      // send confirmation email (non-blocking)
       const {
         data: { session },
       } = await supabase.auth.getSession();
+      if (!session?.access_token) throw new Error('Not authenticated');
+
+      const createRes = await fetch('/api/orders/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          categoryId: form.categoryId,
+          title: form.title,
+          description: form.description,
+          items: form.items,
+          pickupLocation: form.pickupLocation,
+          deliveryLocation: form.deliveryLocation,
+          urgency: form.urgency,
+          notes: form.notes,
+        }),
+      });
+      const created = await createRes.json();
+      if (!createRes.ok) throw new Error(created?.error || 'Failed to create order');
+
+      // send confirmation email (non-blocking)
       fetch('/api/student/order-placed', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${session?.access_token ?? ''}`,
         },
-        body: JSON.stringify({ orderId: order.id }),
+        body: JSON.stringify({ orderId: created.orderId }),
       }).catch(() => {});
 
       setSuccess(true);
-      setTimeout(() => router.push(`/student/orders/${order.id}`), 1800);
+      setTimeout(() => router.push(`/student/orders/${created.orderId}`), 1800);
     } catch (e: any) {
       setError(e.message || 'Failed to create order');
     } finally {

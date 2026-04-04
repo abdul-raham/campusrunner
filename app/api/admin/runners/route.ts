@@ -67,19 +67,18 @@ export async function GET() {
         created_at,
         runners (
           id,
-          profile_id,
           verification_status,
           rating,
-          total_jobs,
-          runner_tier,
-          student_id_number,
-          created_at
+          total_jobs
         )
       `)
       .eq('role', 'runner')
       .order('created_at', { ascending: false });
 
-    if (error) throw error;
+    if (error) {
+      console.error('Supabase query error:', JSON.stringify(error));
+      throw error;
+    }
 
     const normalized = (data || []).map((runner) => {
       const runnerRow = Array.isArray(runner.runners) ? runner.runners[0] : runner.runners;
@@ -87,13 +86,9 @@ export async function GET() {
         ...runner,
         runners: runnerRow || {
           id: null,
-          profile_id: runner.id,
           verification_status: 'pending',
           rating: 0,
           total_jobs: 0,
-          runner_tier: 'normal',
-          student_id_number: runner.matric_number || null,
-          created_at: runner.created_at,
         },
       };
     });

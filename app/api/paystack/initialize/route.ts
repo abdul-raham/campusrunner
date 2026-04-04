@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { rateLimit } from '@/lib/rateLimit';
 
 const getAdminClient = () => {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -10,6 +11,11 @@ const getAdminClient = () => {
 
 export async function POST(req: Request) {
   try {
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+    const rl = rateLimit(`paystack_init:${ip}`, 15, 60_000);
+    if (!rl.allowed) {
+      return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+    }
     const body = await req.json().catch(() => null);
     const amount = Number(body?.amount || 0);
     const userId = body?.userId as string | undefined;

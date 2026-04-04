@@ -120,10 +120,10 @@ export default function RunnerShell({ children }: { children: React.ReactNode })
               {dark ? '☀️' : '🌙'}
             </button>
             <div style={{ position: 'relative' }} ref={notifRef}>
-              <button className="sd-icon-btn" onClick={() => setNotifOpen(v => !v)}>
+              <button className={`sd-icon-btn${unreadCount > 0 ? ' bell-ring' : ''}`} onClick={() => setNotifOpen(v => !v)}>
                 🔔
                 {unreadCount > 0 && (
-                  <div style={{ position: 'absolute', top: 4, right: 4, minWidth: 16, height: 16, padding: '0 4px', background: 'var(--gold)', borderRadius: 99, fontSize: 9, fontWeight: 700, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid var(--surf)' }}>
+                  <div className="sd-notif-badge">
                     {unreadCount > 9 ? '9+' : unreadCount}
                   </div>
                 )}

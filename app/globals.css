@@ -1,72 +1,110 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
 
-/* Base styles */
+@theme {
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --color-amber-50: #fffbeb;
+  --color-amber-100: #fef3c7;
+  --color-amber-400: #fbbf24;
+  --color-amber-500: #f59e0b;
+  --color-amber-600: #d97706;
+}
+
 @layer base {
-  body {
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+  *, *::before, *::after {
+    box-sizing: border-box;
   }
 
   html {
     scroll-behavior: smooth;
   }
-}
 
-/* Custom animations */
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes slideUp {
-  from { 
-    opacity: 0; 
-    transform: translateY(30px); 
+  body {
+    font-family: "Inter", system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background: #f2f4f7;
   }
-  to { 
-    opacity: 1; 
-    transform: translateY(0); 
+
+  .dark body {
+    background: #0f172a;
   }
 }
 
-.animate-fade-in {
-  animation: fadeIn 0.6s ease-out forwards;
+@layer utilities {
+  .glass-card {
+    border-radius: 1.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow: 0 4px 24px rgba(15, 23, 42, 0.06);
+  }
+
+  .dark .glass-card {
+    border-color: rgba(255, 255, 255, 0.08);
+    background: rgba(15, 23, 42, 0.65);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+  }
+
+  .glass-panel {
+    border-radius: 2rem;
+    border: 1px solid rgba(255, 255, 255, 0.65);
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    box-shadow: 0 8px 40px rgba(15, 23, 42, 0.1);
+  }
+
+  .dark .glass-panel {
+    border-color: rgba(255, 255, 255, 0.08);
+    background: rgba(15, 23, 42, 0.8);
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4);
+  }
+
+  .glass-sidebar {
+    border-radius: 1.75rem;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.78);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 0 8px 32px rgba(15, 23, 42, 0.07);
+  }
+
+  .dark .glass-sidebar {
+    border-color: rgba(255, 255, 255, 0.07);
+    background: rgba(15, 23, 42, 0.7);
+  }
 }
 
-.animate-slide-up {
-  animation: slideUp 0.8s ease-out forwards;
+/* Scrollbar */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+/* Recharts tooltip */
+.recharts-tooltip-wrapper .recharts-default-tooltip {
+  border-radius: 12px !important;
+  border: 1px solid rgba(255,255,255,0.6) !important;
+  background: rgba(255,255,255,0.95) !important;
+  box-shadow: 0 4px 20px rgba(15,23,42,0.1) !important;
 }
 
-.delay-100 { animation-delay: 0.1s; }
-.delay-200 { animation-delay: 0.2s; }
-.delay-300 { animation-delay: 0.3s; }
-.delay-400 { animation-delay: 0.4s; }
-.delay-500 { animation-delay: 0.5s; }
-.delay-600 { animation-delay: 0.6s; }
-
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+@keyframes bellRing {
+  0% { transform: rotate(0deg); }
+  8% { transform: rotate(15deg); }
+  16% { transform: rotate(-12deg); }
+  24% { transform: rotate(10deg); }
+  32% { transform: rotate(-8deg); }
+  40% { transform: rotate(6deg); }
+  48% { transform: rotate(-4deg); }
+  56% { transform: rotate(3deg); }
+  64% { transform: rotate(-2deg); }
+  72% { transform: rotate(1deg); }
+  100% { transform: rotate(0deg); }
 }
 
-::-webkit-scrollbar-track {
-  background: #f1f5f9;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
-}
-
-/* Selection styles */
-::selection {
-  background: rgba(14, 165, 233, 0.2);
-  color: #0c4a6e;
+.bell-ring {
+  animation: bellRing 1.2s ease-in-out infinite;
+  transform-origin: 50% 0%;
 }

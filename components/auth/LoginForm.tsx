@@ -41,24 +41,24 @@ export function LoginFormComponent() {
 
   if (success) {
     return (
-      <div className="auth-animate" style={{ textAlign: 'center', padding: '32px 0' }}>
-        <div style={{ 
-          width: 64, 
-          height: 64, 
-          borderRadius: 20, 
-          background: 'rgba(22,163,74,0.1)', 
-          border: '1px solid var(--ok)', 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'center', 
-          margin: '0 auto 16px',
-          fontSize: 32
+      <div style={{ textAlign: 'center', padding: '32px 0' }}>
+        <div style={{
+          width: 64, height: 64, borderRadius: 20,
+          background: 'rgba(22,163,74,0.1)', border: '1px solid var(--ok)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          margin: '0 auto 16px', fontSize: 32,
         }}>
           ✓
         </div>
         <h3 className="auth-title" style={{ fontSize: 18, marginBottom: 8 }}>Welcome back!</h3>
         <p className="auth-sub" style={{ marginBottom: 20 }}>Redirecting you now...</p>
-        <div className="btn-spinner" style={{ margin: '0 auto' }}></div>
+        <div style={{
+          width: 20, height: 20, margin: '0 auto',
+          border: '2.5px solid rgba(201,149,42,0.3)',
+          borderTopColor: 'var(--gold)',
+          borderRadius: '50%',
+          animation: 'spin 0.7s linear infinite',
+        }} />
       </div>
     );
   }

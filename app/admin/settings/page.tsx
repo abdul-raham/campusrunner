@@ -1,289 +1,400 @@
 'use client';
-
+import * as React from 'react';
 import { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
-import {
-  Settings as SettingsIcon,
-  Percent,
-  Bell,
-  Save,
-  Palette,
-} from 'lucide-react';
+import Box from '@mui/material/Box';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import Typography from '@mui/material/Typography';
+import Stack from '@mui/material/Stack';
+import Grid from '@mui/material/Grid';
+import TextField from '@mui/material/TextField';
+import Button from '@mui/material/Button';
+import Switch from '@mui/material/Switch';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
+import InputLabel from '@mui/material/InputLabel';
+import FormControl from '@mui/material/FormControl';
+import Divider from '@mui/material/Divider';
+import Alert from '@mui/material/Alert';
+import CircularProgress from '@mui/material/CircularProgress';
+import Chip from '@mui/material/Chip';
+import Avatar from '@mui/material/Avatar';
+import InputAdornment from '@mui/material/InputAdornment';
+import SettingsIcon from '@mui/icons-material/Settings';
+import PercentIcon from '@mui/icons-material/Percent';
+import NotificationsIcon from '@mui/icons-material/Notifications';
+import SaveIcon from '@mui/icons-material/Save';
+import BrushIcon from '@mui/icons-material/Brush';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import ImageIcon from '@mui/icons-material/Image';
+import { alpha, useTheme } from '@mui/material/styles';
+import { supabase } from '@/lib/supabase';
+
+interface Settings {
+  support_email: string;
+  commission_rate: string;
+  service_fee: string;
+  min_payout: string;
+  maintenance_mode: string;
+  app_name: string;
+  logo_url: string;
+  currency: string;
+}
+
+const DEFAULTS: Settings = {
+  support_email: 'support@campusrunner.app',
+  commission_rate: '10',
+  service_fee: '100',
+  min_payout: '5000',
+  maintenance_mode: 'false',
+  app_name: 'CampusRunner',
+  logo_url: '',
+  currency: 'NGN',
+};
+
+const CURRENCY_SYMBOLS: Record<string, string> = { NGN: '₦', GHS: '₵', KES: 'KSh' };
+
+function SectionCard({
+  icon, title, color, children,
+}: {
+  icon: React.ReactNode; title: string; color: string; children: React.ReactNode;
+}) {
+  return (
+    <Card sx={{ height: '100%' }}>
+      <CardContent sx={{ p: { xs: 2, sm: 2.5 } }}>
+        <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 2 }}>
+          <Box sx={{ width: 34, height: 34, borderRadius: 2, bgcolor: alpha(color, 0.1), display: 'flex', alignItems: 'center', justifyContent: 'center', color }}>
+            {icon}
+          </Box>
+          <Typography variant="body1" fontWeight={800}>{title}</Typography>
+        </Stack>
+        <Divider sx={{ mb: 2 }} />
+        {children}
+      </CardContent>
+    </Card>
+  );
+}
 
 export default function AdminSettingsPage() {
-  const [supportEmail, setSupportEmail] = useState('support@campusrunner.app');
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
+  const [settings, setSettings] = useState<Settings>(DEFAULTS);
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
+  const [message, setMessage] = useState<{ text: string; ok: boolean } | null>(null);
 
   useEffect(() => {
-    const loadSettings = async () => {
-      try {
-        const res = await fetch('/api/admin/settings');
-        if (!res.ok) return;
-        const data = await res.json();
-        if (data.settings?.support_email) {
-          setSupportEmail(data.settings.support_email);
-        }
-      } catch (error) {
-        console.error('Settings load error:', error);
-      }
+    const load = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      fetch('/api/admin/settings', {
+        headers: { Authorization: `Bearer ${session?.access_token ?? ''}` },
+      })
+        .then(r => r.ok ? r.json() : null)
+        .then(d => { if (d?.settings) setSettings({ ...DEFAULTS, ...d.settings }); })
+        .catch(() => {})
+        .finally(() => setLoading(false));
     };
-
-    loadSettings();
+    load();
   }, []);
+
+  const set = (key: keyof Settings, value: string) =>
+    setSettings(prev => ({ ...prev, [key]: value }));
 
   const handleSave = async () => {
     setSaving(true);
     setMessage(null);
     try {
+      const { data: { session } } = await supabase.auth.getSession();
       const res = await fetch('/api/admin/settings', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ support_email: supportEmail }),
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session?.access_token ?? ''}` },
+        body: JSON.stringify(settings),
       });
-      if (!res.ok) throw new Error('Failed to save');
-      setMessage('Settings saved');
-    } catch (error) {
-      console.error('Settings save error:', error);
-      setMessage('Failed to save settings');
+      setMessage({ text: res.ok ? 'Settings saved successfully!' : 'Failed to save settings.', ok: res.ok });
+    } catch {
+      setMessage({ text: 'Network error. Please try again.', ok: false });
     } finally {
       setSaving(false);
-      setTimeout(() => setMessage(null), 2000);
+      setTimeout(() => setMessage(null), 4000);
     }
   };
 
+  const fieldSx = {
+    '& .MuiOutlinedInput-root': {
+      bgcolor: isDark ? alpha('#fff', 0.04) : alpha('#f8fafc', 0.9),
+    },
+  };
+
+  const symbol = CURRENCY_SYMBOLS[settings.currency] || '₦';
+  const orderAmount = 10000;
+  const platformEarning = orderAmount * Number(settings.commission_rate || 0) / 100 + Number(settings.service_fee || 0);
+  const runnerEarning = orderAmount - platformEarning;
+
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', pt: 8 }}>
+        <CircularProgress sx={{ color: '#f59e0b' }} />
+      </Box>
+    );
+  }
+
   return (
-    <div className="flex-1 p-6 lg:p-8 ">
+    <Box>
       {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
-        className="mb-8"
-      >
-        <div className="flex items-center gap-3 mb-2">
-          <div className="p-2 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 text-white">
-            <SettingsIcon className="h-6 w-6" />
-          </div>
-          <h1 className="text-3xl font-black text-slate-900">App Settings</h1>
-        </div>
-        <p className="text-slate-500">Configure your CampusRunner platform settings</p>
-        
-        <div className="flex items-center gap-3 mt-4">
-          <button
+      <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ sm: 'center' }}
+        justifyContent="space-between" spacing={2} sx={{ mb: 3 }}>
+        <Stack direction="row" alignItems="center" spacing={2}>
+          <Box sx={{ width: 40, height: 40, borderRadius: 2.5, bgcolor: alpha('#f59e0b', 0.12), display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#d97706' }}>
+            <SettingsIcon />
+          </Box>
+          <Box>
+            <Typography variant="h5" fontWeight={900}>App Settings</Typography>
+            <Typography variant="body2" color="text.secondary">Configure your CampusRunner platform</Typography>
+          </Box>
+        </Stack>
+        <Stack direction="row" alignItems="center" spacing={1.5} flexWrap="wrap">
+          {message && (
+            <Alert severity={message.ok ? 'success' : 'error'} sx={{ py: 0.5, borderRadius: 2, fontSize: 13 }}>
+              {message.text}
+            </Alert>
+          )}
+          <Button
+            variant="contained"
+            startIcon={saving ? <CircularProgress size={15} sx={{ color: '#fff' }} /> : <SaveIcon />}
             onClick={handleSave}
             disabled={saving}
-            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 px-6 py-3 text-sm font-bold text-white shadow-lg hover:shadow-xl transition-all disabled:opacity-70"
+            sx={{ borderRadius: 2, minWidth: 140, fontWeight: 800 }}
           >
-            <Save className="h-4 w-4" />
-            {saving ? 'Saving...' : 'Save Changes'}
-          </button>
-          {message && <p className="text-sm font-semibold text-slate-500">{message}</p>}
-        </div>
-      </motion.div>
+            {saving ? 'Saving…' : 'Save Changes'}
+          </Button>
+        </Stack>
+      </Stack>
 
-      {/* Settings Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* General Settings */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.8 }}
-          className="glass-card p-6"
-        >
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 rounded-lg bg-gradient-to-br from-slate-800 to-slate-600 text-white">
-              <SettingsIcon className="h-5 w-5" />
-            </div>
-            <h2 className="text-xl font-black text-slate-900">General</h2>
-          </div>
-          
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-semibold text-slate-500 mb-2">App Name</label>
-              <input 
-                type="text" 
-                defaultValue="CampusRunner"
-                className="w-full rounded-xl border border-slate-200/80 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent" 
+      <Grid container spacing={2}>
+        {/* Branding */}
+        <Grid size={{ xs: 12, lg: 6 }}>
+          <SectionCard icon={<BrushIcon fontSize="small" />} title="Branding" color="#8b5cf6">
+            <Stack spacing={2}>
+              <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 1 }}>
+                <Avatar
+                  src={settings.logo_url || undefined}
+                  sx={{ width: 52, height: 52, bgcolor: '#f59e0b', fontSize: 20, fontWeight: 900 }}
+                >
+                  {!settings.logo_url && settings.app_name.charAt(0)}
+                </Avatar>
+                <Box>
+                  <Typography variant="body2" fontWeight={800}>{settings.app_name}</Typography>
+                  <Typography variant="caption" color="text.secondary">App preview</Typography>
+                </Box>
+              </Stack>
+              <TextField
+                label="App Name"
+                value={settings.app_name}
+                onChange={e => set('app_name', e.target.value)}
+                size="small" fullWidth sx={fieldSx}
+                helperText="Display name shown across the platform"
               />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-semibold text-slate-500 mb-2">Support Email</label>
-              <input 
-                type="email" 
-                value={supportEmail}
-                onChange={(e) => setSupportEmail(e.target.value)}
-                className="w-full rounded-xl border border-slate-200/80 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent" 
+              <TextField
+                label="Logo URL"
+                value={settings.logo_url}
+                onChange={e => set('logo_url', e.target.value)}
+                size="small" fullWidth sx={fieldSx}
+                placeholder="https://example.com/logo.png"
+                helperText="Direct URL to your logo image"
+                InputProps={{
+                  startAdornment: <InputAdornment position="start"><ImageIcon sx={{ fontSize: 16, color: 'text.secondary' }} /></InputAdornment>,
+                }}
               />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-semibold text-slate-500 mb-2">Default Currency</label>
-              <select className="w-full rounded-xl border border-slate-200/80 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent">
-                <option value="NGN">Nigerian Naira (₦)</option>
-                <option value="GHS">Ghanaian Cedi (₵)</option>
-                <option value="KES">Kenyan Shilling (KSh)</option>
-              </select>
-            </div>
-            
-            <div className="flex items-center gap-3">
-              <input 
-                id="maintenance" 
-                type="checkbox" 
-                className="h-4 w-4 rounded border-slate-200/80 text-amber-500 focus:ring-amber-400" 
+              <TextField
+                label="Support Email"
+                type="email"
+                value={settings.support_email}
+                onChange={e => set('support_email', e.target.value)}
+                size="small" fullWidth sx={fieldSx}
+                helperText="Email shown to users for support"
               />
-              <label htmlFor="maintenance" className="text-sm font-semibold text-slate-900">
-                Enable maintenance mode
-              </label>
-            </div>
-          </div>
-        </motion.div>
+              <FormControl size="small" fullWidth>
+                <InputLabel>Currency</InputLabel>
+                <Select value={settings.currency} onChange={e => set('currency', e.target.value)} label="Currency" sx={fieldSx}>
+                  <MenuItem value="NGN">Nigerian Naira (₦)</MenuItem>
+                  <MenuItem value="GHS">Ghanaian Cedi (₵)</MenuItem>
+                  <MenuItem value="KES">Kenyan Shilling (KSh)</MenuItem>
+                </Select>
+              </FormControl>
+            </Stack>
+          </SectionCard>
+        </Grid>
 
         {/* Platform Fees */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.8 }}
-          className="glass-card p-6"
-        >
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 text-white">
-              <Percent className="h-5 w-5" />
-            </div>
-            <h2 className="text-xl font-black text-slate-900">Platform Fees</h2>
-          </div>
-          
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-semibold text-slate-500 mb-2">Commission Rate (%)</label>
-              <input 
-                type="number" 
-                defaultValue="10"
-                min="0"
-                max="50"
-                className="w-full rounded-xl border border-slate-200/80 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent" 
+        <Grid size={{ xs: 12, lg: 6 }}>
+          <SectionCard icon={<PercentIcon fontSize="small" />} title="Monetization & Fees" color="#10b981">
+            <Stack spacing={2}>
+              <TextField
+                label="Commission Rate (%)"
+                type="number"
+                value={settings.commission_rate}
+                onChange={e => set('commission_rate', e.target.value)}
+                size="small" fullWidth sx={fieldSx}
+                inputProps={{ min: 0, max: 100, step: 0.5 }}
+                helperText="% taken from each completed order"
+                InputProps={{
+                  endAdornment: <InputAdornment position="end"><PercentIcon sx={{ fontSize: 16, color: 'text.secondary' }} /></InputAdornment>,
+                }}
               />
-              <p className="text-xs text-slate-500 mt-1">Percentage taken from each completed order</p>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-semibold text-slate-500 mb-2">Service Fee (₦)</label>
-              <input 
-                type="number" 
-                defaultValue="100"
-                min="0"
-                className="w-full rounded-xl border border-slate-200/80 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent" 
+              <TextField
+                label={`Service Fee (${symbol})`}
+                type="number"
+                value={settings.service_fee}
+                onChange={e => set('service_fee', e.target.value)}
+                size="small" fullWidth sx={fieldSx}
+                inputProps={{ min: 0 }}
+                helperText="Fixed fee added to every order"
               />
-              <p className="text-xs text-slate-500 mt-1">Fixed fee added to each order</p>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-semibold text-slate-500 mb-2">Minimum Payout (₦)</label>
-              <input 
-                type="number" 
-                defaultValue="5000"
-                min="1000"
-                className="w-full rounded-xl border border-slate-200/80 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent" 
+              <TextField
+                label={`Minimum Payout (${symbol})`}
+                type="number"
+                value={settings.min_payout}
+                onChange={e => set('min_payout', e.target.value)}
+                size="small" fullWidth sx={fieldSx}
+                inputProps={{ min: 0 }}
+                helperText="Minimum amount runners can withdraw"
               />
-              <p className="text-xs text-slate-500 mt-1">Minimum amount for runner withdrawals</p>
-            </div>
-          </div>
-        </motion.div>
 
-        {/* App Appearance */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4, duration: 0.8 }}
-          className="glass-card p-6"
-        >
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 rounded-lg bg-gradient-to-br from-amber-500 to-orange-500 text-white">
-              <Palette className="h-5 w-5" />
-            </div>
-            <h2 className="text-xl font-black text-slate-900">Appearance</h2>
-          </div>
-          
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-semibold text-slate-500 mb-2">Primary Color</label>
-              <div className="flex items-center gap-3">
-                <input 
-                  type="color" 
-                  defaultValue="#C9952A"
-                  className="h-12 w-20 rounded-xl border border-slate-200/80 cursor-pointer" 
+              {/* Live fee preview */}
+              <Box sx={{ p: 2, borderRadius: 2.5, bgcolor: alpha('#10b981', 0.06), border: '1px solid', borderColor: alpha('#10b981', 0.15) }}>
+                <Typography variant="caption" color="text.secondary" fontWeight={700} sx={{ textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                  Fee Preview — {symbol}{orderAmount.toLocaleString()} order
+                </Typography>
+                <Grid container spacing={1} sx={{ mt: 0.5 }}>
+                  <Grid size={6}>
+                    <Typography variant="caption" color="text.secondary">Platform earns</Typography>
+                    <Typography variant="body2" fontWeight={900} sx={{ color: '#10b981' }}>
+                      {symbol}{platformEarning.toLocaleString()}
+                    </Typography>
+                  </Grid>
+                  <Grid size={6}>
+                    <Typography variant="caption" color="text.secondary">Runner earns</Typography>
+                    <Typography variant="body2" fontWeight={900} sx={{ color: '#3b82f6' }}>
+                      {symbol}{Math.max(0, runnerEarning).toLocaleString()}
+                    </Typography>
+                  </Grid>
+                </Grid>
+              </Box>
+            </Stack>
+          </SectionCard>
+        </Grid>
+
+        {/* System */}
+        <Grid size={{ xs: 12, lg: 6 }}>
+          <SectionCard icon={<SettingsIcon fontSize="small" />} title="System" color="#64748b">
+            <Stack spacing={1.5}>
+              <Box sx={{
+                p: 2, borderRadius: 2.5, border: '1px solid',
+                borderColor: settings.maintenance_mode === 'true' ? alpha('#f59e0b', 0.4) : 'divider',
+                bgcolor: settings.maintenance_mode === 'true' ? alpha('#f59e0b', 0.05) : 'transparent',
+                transition: 'all 0.2s',
+              }}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={settings.maintenance_mode === 'true'}
+                      onChange={e => set('maintenance_mode', e.target.checked ? 'true' : 'false')}
+                      size="small"
+                      sx={{
+                        '& .MuiSwitch-switchBase.Mui-checked': { color: '#f59e0b' },
+                        '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { bgcolor: '#f59e0b' },
+                      }}
+                    />
+                  }
+                  label={
+                    <Box>
+                      <Stack direction="row" alignItems="center" spacing={1}>
+                        <Typography variant="body2" fontWeight={700}>Maintenance Mode</Typography>
+                        {settings.maintenance_mode === 'true' && (
+                          <Chip label="ACTIVE" size="small" sx={{ bgcolor: '#f59e0b', color: '#fff', fontSize: 9, fontWeight: 900, height: 16 }} />
+                        )}
+                      </Stack>
+                      <Typography variant="caption" color="text.secondary">
+                        Temporarily disables the platform for all users
+                      </Typography>
+                    </Box>
+                  }
                 />
-                <input 
-                  type="text" 
-                  defaultValue="#C9952A"
-                  className="flex-1 rounded-xl border border-slate-200/80 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent" 
-                />
-              </div>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-semibold text-slate-500 mb-2">App Logo</label>
-              <div className="border-2 border-dashed border-slate-200/80 rounded-xl p-6 text-center hover:border-amber-300 transition-colors cursor-pointer">
-                <div className="text-slate-500">
-                  <p className="font-semibold">Click to upload logo</p>
-                  <p className="text-sm">PNG, JPG up to 2MB</p>
-                </div>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-3">
-              <input 
-                id="darkMode" 
-                type="checkbox" 
-                className="h-4 w-4 rounded border-slate-200/80 text-amber-500 focus:ring-amber-400" 
-              />
-              <label htmlFor="darkMode" className="text-sm font-semibold text-slate-900">
-                Enable dark mode (coming soon)
-              </label>
-            </div>
-          </div>
-        </motion.div>
+              </Box>
+            </Stack>
+          </SectionCard>
+        </Grid>
 
         {/* Notifications */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5, duration: 0.8 }}
-          className="glass-card p-6"
-        >
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 rounded-lg bg-gradient-to-br from-amber-500 to-orange-500 text-white">
-              <Bell className="h-5 w-5" />
-            </div>
-            <h2 className="text-xl font-black text-slate-900">Notifications</h2>
-          </div>
-          
-          <div className="space-y-4">
-            {[
-              { id: 'newOrders', label: 'New order notifications', desc: 'Get notified when students place orders', defaultChecked: true },
-              { id: 'runnerApprovals', label: 'Runner verification requests', desc: 'Alerts for pending runner approvals', defaultChecked: true },
-              { id: 'lowBalance', label: 'Low wallet balance alerts', desc: 'Notify when user wallets are low', defaultChecked: false },
-              { id: 'weeklyReports', label: 'Weekly summary reports', desc: 'Automated weekly platform reports', defaultChecked: true },
-            ].map((notification) => (
-              <div key={notification.id} className="flex items-start gap-3 p-3 rounded-xl border border-slate-200/80 hover:bg-white transition-colors">
-                <input 
-                  id={notification.id}
-                  type="checkbox" 
-                  defaultChecked={notification.defaultChecked}
-                  className="h-4 w-4 rounded border-slate-200/80 text-amber-500 focus:ring-amber-400 mt-1" 
-                />
-                <div className="flex-1">
-                  <label htmlFor={notification.id} className="block text-sm font-semibold text-slate-900 cursor-pointer">
-                    {notification.label}
-                  </label>
-                  <p className="text-xs text-slate-500 mt-1">{notification.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </motion.div>
-      </div>
-    </div>
+        <Grid size={{ xs: 12, lg: 6 }}>
+          <SectionCard icon={<NotificationsIcon fontSize="small" />} title="Notifications" color="#3b82f6">
+            <Stack spacing={1.5}>
+              {[
+                { label: 'New order alerts', desc: 'Notify when students place orders' },
+                { label: 'Runner verification requests', desc: 'Alerts for pending runner approvals' },
+                { label: 'Low wallet balance alerts', desc: 'Notify when user wallets are low' },
+                { label: 'Weekly summary reports', desc: 'Automated weekly platform reports' },
+              ].map((n, i) => (
+                <Box key={n.label} sx={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  p: 1.5, borderRadius: 2, border: '1px solid', borderColor: 'divider',
+                }}>
+                  <Box>
+                    <Typography variant="body2" fontWeight={700} sx={{ fontSize: '0.8rem' }}>{n.label}</Typography>
+                    <Typography variant="caption" color="text.secondary">{n.desc}</Typography>
+                  </Box>
+                  <Switch
+                    defaultChecked={i !== 2}
+                    size="small"
+                    sx={{
+                      '& .MuiSwitch-switchBase.Mui-checked': { color: '#3b82f6' },
+                      '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { bgcolor: '#3b82f6' },
+                    }}
+                  />
+                </Box>
+              ))}
+            </Stack>
+          </SectionCard>
+        </Grid>
+
+        {/* Danger zone */}
+        <Grid size={{ xs: 12 }}>
+          <Card sx={{ border: '1px solid', borderColor: alpha('#ef4444', 0.25) }}>
+            <CardContent sx={{ p: { xs: 2, sm: 2.5 } }}>
+              <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 2 }}>
+                <Box sx={{ width: 34, height: 34, borderRadius: 2, bgcolor: alpha('#ef4444', 0.1), display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ef4444' }}>
+                  <WarningAmberIcon fontSize="small" />
+                </Box>
+                <Typography variant="body1" fontWeight={800} color="error.main">Danger Zone</Typography>
+              </Stack>
+              <Divider sx={{ mb: 2, borderColor: alpha('#ef4444', 0.12) }} />
+              <Grid container spacing={1.5}>
+                {[
+                  { label: 'Clear all notifications', desc: 'Permanently delete all platform notifications' },
+                  { label: 'Reset platform stats', desc: 'Reset all counters and analytics data' },
+                  { label: 'Purge test orders', desc: 'Remove all orders marked as test data' },
+                ].map(action => (
+                  <Grid key={action.label} size={{ xs: 12, sm: 4 }}>
+                    <Box sx={{
+                      display: 'flex', flexDirection: 'column', gap: 1,
+                      p: 2, borderRadius: 2, border: '1px solid',
+                      borderColor: alpha('#ef4444', 0.15),
+                      bgcolor: alpha('#ef4444', 0.02),
+                    }}>
+                      <Typography variant="body2" fontWeight={700} sx={{ fontSize: '0.8rem' }}>{action.label}</Typography>
+                      <Typography variant="caption" color="text.secondary">{action.desc}</Typography>
+                      <Button variant="outlined" color="error" size="small" sx={{ borderRadius: 2, mt: 0.5, alignSelf: 'flex-start', fontSize: 11 }}>
+                        Execute
+                      </Button>
+                    </Box>
+                  </Grid>
+                ))}
+              </Grid>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+    </Box>
   );
 }

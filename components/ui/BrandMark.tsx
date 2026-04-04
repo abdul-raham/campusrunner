@@ -9,7 +9,7 @@ export function BrandMark({ className }: BrandMarkProps) {
   return (
     <div className={cn('flex items-center justify-center bg-white shadow-lg', className)}>
       <Image 
-        src="/logo.png" 
+        src="/logo.svg" 
         alt="CampusRunner" 
         width={32} 
         height={32} 

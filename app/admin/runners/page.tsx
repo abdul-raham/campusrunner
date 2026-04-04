@@ -1,446 +1,380 @@
 'use client';
-
+import * as React from 'react';
 import { useState, useEffect } from 'react';
-import { Users, CheckCircle, XCircle, Pause, Star, Phone, Mail, MapPin, Calendar, Search } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import Box from '@mui/material/Box';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import Typography from '@mui/material/Typography';
+import Stack from '@mui/material/Stack';
+import Grid from '@mui/material/Grid';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import Chip from '@mui/material/Chip';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+import InputAdornment from '@mui/material/InputAdornment';
+import Dialog from '@mui/material/Dialog';
+import DialogContent from '@mui/material/DialogContent';
+import CircularProgress from '@mui/material/CircularProgress';
+import ToggleButton from '@mui/material/ToggleButton';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+import Avatar from '@mui/material/Avatar';
+import IconButton from '@mui/material/IconButton';
+import Divider from '@mui/material/Divider';
+import SearchIcon from '@mui/icons-material/Search';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import CancelIcon from '@mui/icons-material/Cancel';
+import PauseCircleIcon from '@mui/icons-material/PauseCircle';
+import DirectionsRunIcon from '@mui/icons-material/DirectionsRun';
+import CloseIcon from '@mui/icons-material/Close';
+import EmailIcon from '@mui/icons-material/Email';
+import PhoneIcon from '@mui/icons-material/Phone';
+import SchoolIcon from '@mui/icons-material/School';
+import HomeIcon from '@mui/icons-material/Home';
+import BadgeIcon from '@mui/icons-material/Badge';
+import StarIcon from '@mui/icons-material/Star';
+import WorkIcon from '@mui/icons-material/Work';
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
+import { alpha, useTheme } from '@mui/material/styles';
 
 interface Runner {
-  id: string;
-  full_name: string;
-  email: string;
-  phone: string;
-  university: string;
-  hostel_location: string | null;
-  matric_number: string | null;
-  created_at: string;
-  runners: {
-    id: string;
-    verification_status: string;
-    rating: number;
-    total_jobs: number;
-    runner_tier: string;
-    student_id_number: string | null;
-    created_at: string;
-  };
+  id: string; full_name: string; email: string; phone: string;
+  university: string; hostel_location: string | null; matric_number: string | null; created_at: string;
+  runners: { id: string; verification_status: string; rating: number; total_jobs: number };
+}
+
+const STATUS_CONFIG: Record<string, { label: string; color: 'success' | 'warning' | 'error' | 'default' }> = {
+  approved:  { label: 'Approved',  color: 'success' },
+  pending:   { label: 'Pending',   color: 'warning' },
+  declined:  { label: 'Declined',  color: 'error'   },
+  rejected:  { label: 'Rejected',  color: 'error'   },
+  suspended: { label: 'Suspended', color: 'default' },
+};
+
+function DetailDialog({ runner, onClose, onUpdate, updating }: {
+  runner: Runner; onClose: () => void;
+  onUpdate: (id: string, status: string) => void; updating: string | null;
+}) {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
+  const sc = STATUS_CONFIG[runner.runners.verification_status] || { label: runner.runners.verification_status, color: 'default' as const };
+  const isUpdating = updating === runner.id;
+  const status = runner.runners.verification_status;
+
+  return (
+    <Dialog open onClose={onClose} maxWidth="sm" fullWidth
+      PaperProps={{
+        sx: {
+          borderRadius: 4,
+          background: isDark
+            ? 'rgba(15,23,42,0.85)'
+            : 'rgba(255,255,255,0.85)',
+          backdropFilter: 'blur(24px)',
+          WebkitBackdropFilter: 'blur(24px)',
+          border: '1px solid',
+          borderColor: isDark ? 'rgba(148,163,184,0.15)' : 'rgba(148,163,184,0.2)',
+          boxShadow: isDark
+            ? '0 24px 64px rgba(0,0,0,0.6)'
+            : '0 24px 64px rgba(15,23,42,0.15)',
+          overflow: 'hidden',
+        },
+      }}
+      slotProps={{
+        backdrop: {
+          sx: { backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', bgcolor: 'rgba(0,0,0,0.4)' },
+        },
+      }}
+    >
+      {/* Header */}
+      <Box sx={{
+        p: 3, pb: 2,
+        background: 'linear-gradient(135deg, #f59e0b22, #d9770611)',
+        borderBottom: '1px solid', borderColor: isDark ? 'rgba(148,163,184,0.1)' : 'rgba(148,163,184,0.15)',
+      }}>
+        <Stack direction="row" alignItems="flex-start" justifyContent="space-between">
+          <Stack direction="row" alignItems="center" spacing={2}>
+            <Avatar sx={{
+              width: 56, height: 56, fontSize: 22, fontWeight: 900,
+              background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+              boxShadow: '0 4px 16px rgba(245,158,11,0.4)',
+            }}>
+              {runner.full_name.charAt(0)}
+            </Avatar>
+            <Box>
+              <Typography variant="h6" fontWeight={900}>{runner.full_name}</Typography>
+              <Stack direction="row" alignItems="center" spacing={1} mt={0.5}>
+                <Chip label={sc.label} color={sc.color} size="small" sx={{ fontWeight: 800, fontSize: 11 }} />
+                <Typography variant="caption" color="text.secondary">
+                  ⭐ {(runner.runners.rating ?? 0).toFixed(1)} · {runner.runners.total_jobs} jobs
+                </Typography>
+              </Stack>
+            </Box>
+          </Stack>
+          <IconButton onClick={onClose} size="small" sx={{ color: 'text.secondary' }}>
+            <CloseIcon fontSize="small" />
+          </IconButton>
+        </Stack>
+      </Box>
+
+      <DialogContent sx={{ p: 3 }}>
+        <Grid container spacing={2}>
+          {[
+            { icon: <EmailIcon fontSize="small" />, label: 'Email', value: runner.email },
+            { icon: <PhoneIcon fontSize="small" />, label: 'Phone', value: runner.phone || 'N/A' },
+            { icon: <SchoolIcon fontSize="small" />, label: 'University', value: runner.university },
+            { icon: <HomeIcon fontSize="small" />, label: 'Hostel', value: runner.hostel_location || 'N/A' },
+            { icon: <BadgeIcon fontSize="small" />, label: 'Matric Number', value: runner.matric_number || 'N/A' },
+            { icon: <CalendarTodayIcon fontSize="small" />, label: 'Joined', value: new Date(runner.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) },
+            { icon: <StarIcon fontSize="small" />, label: 'Rating', value: `${(runner.runners.rating ?? 0).toFixed(1)} / 5.0` },
+            { icon: <WorkIcon fontSize="small" />, label: 'Total Jobs', value: String(runner.runners.total_jobs ?? 0) },
+          ].map(({ icon, label, value }) => (
+            <Grid key={label} size={{ xs: 12, sm: 6 }}>
+              <Box sx={{
+                p: 1.5, borderRadius: 2,
+                bgcolor: isDark ? 'rgba(148,163,184,0.06)' : 'rgba(148,163,184,0.07)',
+                border: '1px solid', borderColor: isDark ? 'rgba(148,163,184,0.1)' : 'rgba(148,163,184,0.12)',
+              }}>
+                <Stack direction="row" alignItems="center" spacing={1} mb={0.5}>
+                  <Box sx={{ color: '#f59e0b' }}>{icon}</Box>
+                  <Typography variant="caption" fontWeight={700} color="text.secondary" sx={{ textTransform: 'uppercase', letterSpacing: '0.06em' }}>{label}</Typography>
+                </Stack>
+                <Typography variant="body2" fontWeight={700}>{value}</Typography>
+              </Box>
+            </Grid>
+          ))}
+        </Grid>
+
+        <Divider sx={{ my: 2.5 }} />
+
+        {/* Actions */}
+        <Stack direction="row" spacing={1} flexWrap="wrap">
+          {status === 'pending' && (
+            <>
+              <Button variant="contained" color="success" disabled={isUpdating}
+                onClick={() => onUpdate(runner.id, 'approved')}
+                startIcon={isUpdating ? <CircularProgress size={14} color="inherit" /> : <CheckCircleIcon />}
+                sx={{ borderRadius: 2, fontWeight: 800 }}>Approve</Button>
+              <Button variant="outlined" color="error" disabled={isUpdating}
+                onClick={() => onUpdate(runner.id, 'declined')}
+                startIcon={<CancelIcon />}
+                sx={{ borderRadius: 2, fontWeight: 800 }}>Decline</Button>
+            </>
+          )}
+          {status === 'approved' && (
+            <Button variant="outlined" color="warning" disabled={isUpdating}
+              onClick={() => onUpdate(runner.id, 'suspended')}
+              startIcon={isUpdating ? <CircularProgress size={14} color="inherit" /> : <PauseCircleIcon />}
+              sx={{ borderRadius: 2, fontWeight: 800 }}>Suspend Runner</Button>
+          )}
+          {['suspended', 'rejected', 'declined'].includes(status) && (
+            <Button variant="contained" color="success" disabled={isUpdating}
+              onClick={() => onUpdate(runner.id, 'approved')}
+              startIcon={isUpdating ? <CircularProgress size={14} color="inherit" /> : <CheckCircleIcon />}
+              sx={{ borderRadius: 2, fontWeight: 800 }}>Reactivate</Button>
+          )}
+          <Button variant="text" onClick={onClose} sx={{ borderRadius: 2, ml: 'auto', color: 'text.secondary' }}>Close</Button>
+        </Stack>
+      </DialogContent>
+    </Dialog>
+  );
 }
 
 export default function AdminRunnersPage() {
   const [runners, setRunners] = useState<Runner[]>([]);
-  const [filteredRunners, setFilteredRunners] = useState<Runner[]>([]);
+  const [filtered, setFiltered] = useState<Runner[]>([]);
   const [loading, setLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [updatingRunner, setUpdatingRunner] = useState<string | null>(null);
-  const [selectedRunner, setSelectedRunner] = useState<Runner | null>(null);
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [search, setSearch] = useState('');
+  const [updating, setUpdating] = useState<string | null>(null);
+  const [detail, setDetail] = useState<Runner | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => { fetchRunners(); }, []);
   useEffect(() => {
-    fetchRunners();
-  }, []);
-
-  useEffect(() => {
-    filterRunners();
-  }, [statusFilter, searchTerm, runners]);
+    let r = runners;
+    if (statusFilter !== 'all') r = r.filter(x => x.runners?.verification_status === statusFilter);
+    if (search) {
+      const q = search.toLowerCase();
+      r = r.filter(x => x.full_name.toLowerCase().includes(q) || x.email.toLowerCase().includes(q) || x.university.toLowerCase().includes(q));
+    }
+    setFiltered(r);
+  }, [statusFilter, search, runners]);
 
   const fetchRunners = async () => {
     try {
       const res = await fetch('/api/admin/runners');
-      if (!res.ok) throw new Error('Failed to load runners');
       const data = await res.json();
+      if (!res.ok) { setError(`API error ${res.status}: ${data.error}`); return; }
       setRunners(data.runners || []);
-    } catch (error) {
-      console.error('Error fetching runners:', error);
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   };
 
-  const filterRunners = () => {
-    let filtered = runners;
-
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(r => r.runners?.verification_status === statusFilter);
-    }
-
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(r => 
-        r.full_name.toLowerCase().includes(term) ||
-        r.email.toLowerCase().includes(term) ||
-        r.university.toLowerCase().includes(term) ||
-        (r.matric_number || '').toLowerCase().includes(term) ||
-        (r.runners?.student_id_number || '').toLowerCase().includes(term)
-      );
-    }
-
-    setFilteredRunners(filtered);
-  };
-
-  const updateRunnerStatus = async (runnerId: string, profileId: string, status: string) => {
-    setUpdatingRunner(runnerId);
+  const updateStatus = async (profileId: string, status: string) => {
+    setUpdating(profileId);
     try {
-      const res = await fetch('/api/admin/runners', {
+      await fetch('/api/admin/runners', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ profileId, status }),
       });
-
-      if (!res.ok) throw new Error('Failed to update runner status');
-
-      const normalizedStatus = status === 'declined' ? 'rejected' : status;
-      setRunners(runners.map(r =>
-        r.id === profileId
-          ? { ...r, runners: { ...r.runners, verification_status: normalizedStatus } }
-          : r
-      ));
-    } catch (error) {
-      console.error('Error updating runner status:', error);
-    } finally {
-      setUpdatingRunner(null);
-    }
+      const normalized = status === 'declined' ? 'rejected' : status;
+      setRunners(prev => prev.map(r => r.id === profileId ? { ...r, runners: { ...r.runners, verification_status: normalized } } : r));
+      // update detail dialog if open
+      setDetail(prev => prev?.id === profileId ? { ...prev, runners: { ...prev.runners, verification_status: normalized } } : prev);
+    } finally { setUpdating(null); }
   };
 
-  const getStatusColor = (status: string) => {
-    switch(status) {
-      case 'approved': return 'bg-green-50 border-green-200 text-green-700';
-      case 'pending': return 'bg-amber-50 border-amber-200 text-amber-700';
-      case 'declined':
-      case 'rejected': return 'bg-red-50 border-red-200 text-red-700';
-      case 'suspended': return 'bg-gray-50 border-gray-200 text-gray-700';
-      default: return 'bg-gray-50 border-gray-200 text-gray-700';
-    }
+  const counts = {
+    total:     runners.length,
+    pending:   runners.filter(r => r.runners?.verification_status === 'pending').length,
+    approved:  runners.filter(r => r.runners?.verification_status === 'approved').length,
+    suspended: runners.filter(r => r.runners?.verification_status === 'suspended').length,
   };
-
-  if (loading) {
-    return (
-      <div className="flex-1 flex items-center justify-center ">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="text-center"
-        >
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-            className="mx-auto mb-4 h-16 w-16 rounded-full border-4 border-amber-200 border-t-amber-500"
-          />
-          <motion.p 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            className="text-lg font-semibold text-slate-500"
-          >
-            Loading Runners...
-          </motion.p>
-        </motion.div>
-      </div>
-    );
-  }
 
   return (
-    <div className="flex-1 p-6 lg:p-8 ">
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
-        className="mb-8"
-      >
-        <div className="flex items-center gap-3 mb-2">
-          <div className="p-2 rounded-xl bg-amber-500 text-white">
-            <Users className="h-6 w-6" />
-          </div>
-          <h1 className="text-3xl font-black text-slate-900">Runner Management</h1>
-        </div>
-        <p className="text-slate-500">Approve, manage, and monitor all platform runners</p>
-      </motion.div>
+    <Box>
+      <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 3 }}>
+        <Box sx={{ width: 44, height: 44, borderRadius: 3, bgcolor: alpha('#f59e0b', 0.12), display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#d97706' }}>
+          <DirectionsRunIcon />
+        </Box>
+        <Box>
+          <Typography variant="h5" fontWeight={900}>Runner Management</Typography>
+          <Typography variant="body2" color="text.secondary">Approve, manage, and monitor all platform runners</Typography>
+        </Box>
+      </Stack>
 
-      {/* Stats */}
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1, duration: 0.8 }}
-        className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6"
-      >
+      <Grid container spacing={2} sx={{ mb: 3 }}>
         {[
-          { label: 'Total Runners', value: runners.length, status: 'all' },
-          { label: 'Pending', value: runners.filter(r => r.runners?.verification_status === 'pending').length, status: 'pending' },
-          { label: 'Approved', value: runners.filter(r => r.runners?.verification_status === 'approved').length, status: 'approved' },
-          { label: 'Suspended', value: runners.filter(r => r.runners?.verification_status === 'suspended').length, status: 'suspended' },
-        ].map((stat, idx) => (
-          <div key={stat.label} className="glass-card p-4">
-            <p className="text-sm font-semibold text-slate-500 mb-1">{stat.label}</p>
-            <p className="text-2xl font-black text-slate-900">{stat.value}</p>
-          </div>
+          { label: 'Total Runners', value: counts.total,     color: '#64748b' },
+          { label: 'Pending',       value: counts.pending,   color: '#f59e0b' },
+          { label: 'Approved',      value: counts.approved,  color: '#10b981' },
+          { label: 'Suspended',     value: counts.suspended, color: '#94a3b8' },
+        ].map(s => (
+          <Grid key={s.label} size={{ xs: 6, sm: 3 }}>
+            <Card>
+              <CardContent sx={{ p: 2.5 }}>
+                <Typography variant="caption" fontWeight={700} color="text.secondary" sx={{ textTransform: 'uppercase', letterSpacing: '0.08em' }}>{s.label}</Typography>
+                <Typography variant="h4" fontWeight={900} sx={{ color: s.color, mt: 0.5 }}>{s.value}</Typography>
+              </CardContent>
+            </Card>
+          </Grid>
         ))}
-      </motion.div>
+      </Grid>
 
-      {/* Filters & Search */}
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2, duration: 0.8 }}
-        className="mb-6"
-      >
-        <div className="glass-card p-6">
-          <div className="flex flex-col lg:flex-row gap-4">
-            {/* Search */}
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-500" />
-              <input
-                type="text"
-                placeholder="Search runners by name, email, university, or matric number..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-slate-200/80 rounded-xl bg-white/50 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent transition-all"
-              />
-            </div>
-
-            {/* Status Filters */}
-            <div className="flex gap-2 flex-wrap">
-              {['all', 'pending', 'approved', 'declined', 'rejected', 'suspended'].map(status => (
-                <button
-                  key={status}
-                  onClick={() => setStatusFilter(status)}
-                  className={`px-4 py-3 rounded-xl font-semibold transition-all ${
-                    statusFilter === status
-                      ? 'bg-amber-500 text-white'
-                      : 'bg-white/50 border border-slate-200/80 text-slate-500 hover:bg-white'
-                  }`}
-                >
-                  {status.charAt(0).toUpperCase() + status.slice(1)}
-                </button>
+      <Card sx={{ mb: 3 }}>
+        <CardContent sx={{ p: 2 }}>
+          <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems={{ md: 'center' }}>
+            <TextField size="small" placeholder="Search runners..." value={search} onChange={e => setSearch(e.target.value)}
+              InputProps={{ startAdornment: <InputAdornment position="start"><SearchIcon fontSize="small" /></InputAdornment> }} sx={{ flex: 1 }} />
+            <ToggleButtonGroup size="small" value={statusFilter} exclusive onChange={(_, v) => v && setStatusFilter(v)}>
+              {['all', 'pending', 'approved', 'rejected', 'suspended'].map(s => (
+                <ToggleButton key={s} value={s} sx={{ px: 2, fontWeight: 700, fontSize: 12 }}>
+                  {s.charAt(0).toUpperCase() + s.slice(1)}
+                </ToggleButton>
               ))}
-            </div>
-          </div>
-        </div>
-      </motion.div>
+            </ToggleButtonGroup>
+          </Stack>
+        </CardContent>
+      </Card>
 
-      {/* Runners List */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.4, duration: 0.8 }}
-        className="space-y-4"
-      >
-        {filteredRunners.length === 0 ? (
-          <div className="glass-card p-12 text-center">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 mb-4">
-              <Users className="h-8 w-8 text-gray-400" />
-            </div>
-            <p className="text-slate-500 text-lg">No runners found</p>
-          </div>
-        ) : (
-          <AnimatePresence>
-            {filteredRunners.map((runner, idx) => (
-              <motion.div
-                key={runner.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ delay: idx * 0.05, duration: 0.6 }}
-                className="glass-card p-6 hover:shadow-xl hover:bg-white/90 transition-all duration-300"
-              >
-                <div className="flex flex-col lg:flex-row gap-6">
-                  {/* Runner Info */}
-                  <div className="flex-1">
-                    <div className="flex items-start justify-between mb-4">
-                      <div>
-                        <h3 className="font-bold text-slate-900 text-lg mb-1">{runner.full_name}</h3>
-                        <p className="text-slate-500 text-sm">{runner.matric_number}</p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                                                <span className={`px-3 py-1 rounded-lg border font-semibold text-sm ${getStatusColor(runner.runners.verification_status)}`}>
-                          {runner.runners.verification_status.toUpperCase()}
-                        </span>
-                      </div>
-                    </div>
+      {error && (
+        <Card sx={{ mb: 2, border: '1px solid', borderColor: 'error.main' }}>
+          <CardContent sx={{ p: 2 }}>
+            <Typography color="error" fontWeight={700}>{error}</Typography>
+          </CardContent>
+        </Card>
+      )}
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2 text-sm">
-                          <Mail className="h-4 w-4 text-slate-500" />
-                          <span className="text-slate-500">{runner.email}</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm">
-                          <Phone className="h-4 w-4 text-slate-500" />
-                          <span className="text-slate-500">{runner.phone}</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm">
-                          <MapPin className="h-4 w-4 text-slate-500" />
-                          <span className="text-slate-500">{runner.university}</span>
-                        </div>
-                      </div>
+      <Card>
+        <TableContainer>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Runner</TableCell>
+                <TableCell>University</TableCell>
+                <TableCell>Rating</TableCell>
+                <TableCell>Jobs</TableCell>
+                <TableCell>Status</TableCell>
+                <TableCell>Joined</TableCell>
+                <TableCell align="right">Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {loading ? (
+                <TableRow><TableCell colSpan={7} align="center" sx={{ py: 6 }}><CircularProgress sx={{ color: '#f59e0b' }} /></TableCell></TableRow>
+              ) : filtered.length === 0 ? (
+                <TableRow><TableCell colSpan={7} align="center" sx={{ py: 6 }}><Typography color="text.secondary">No runners found</Typography></TableCell></TableRow>
+              ) : filtered.map(runner => {
+                const sc = STATUS_CONFIG[runner.runners.verification_status] || { label: runner.runners.verification_status, color: 'default' as const };
+                const isUpdating = updating === runner.id;
+                const status = runner.runners.verification_status;
+                return (
+                  <TableRow key={runner.id} hover>
+                    <TableCell>
+                      <Stack direction="row" alignItems="center" spacing={1.5}>
+                        <Avatar sx={{ width: 34, height: 34, fontSize: 13, fontWeight: 800, bgcolor: '#f59e0b' }}>
+                          {runner.full_name.charAt(0)}
+                        </Avatar>
+                        <Box>
+                          <Typography variant="body2" fontWeight={700}>{runner.full_name}</Typography>
+                          <Typography variant="caption" color="text.secondary">{runner.email}</Typography>
+                        </Box>
+                      </Stack>
+                    </TableCell>
+                    <TableCell><Typography variant="body2">{runner.university}</Typography></TableCell>
+                    <TableCell><Typography variant="body2">⭐ {(runner.runners.rating ?? 0).toFixed(1)}</Typography></TableCell>
+                    <TableCell><Typography variant="body2">{runner.runners.total_jobs}</Typography></TableCell>
+                    <TableCell><Chip label={sc.label} color={sc.color} size="small" /></TableCell>
+                    <TableCell><Typography variant="body2" color="text.secondary">{new Date(runner.created_at).toLocaleDateString()}</Typography></TableCell>
+                    <TableCell align="right">
+                      <Stack direction="row" spacing={0.5} justifyContent="flex-end">
+                        <Button size="small" variant="outlined" onClick={() => setDetail(runner)} sx={{ borderRadius: 2, fontSize: 11 }}>Details</Button>
+                        {status === 'pending' && (
+                          <>
+                            <Button size="small" variant="contained" color="success" disabled={isUpdating}
+                              onClick={() => updateStatus(runner.id, 'approved')}
+                              startIcon={isUpdating ? <CircularProgress size={12} color="inherit" /> : <CheckCircleIcon fontSize="small" />}
+                              sx={{ borderRadius: 2, fontSize: 11 }}>Approve</Button>
+                            <Button size="small" variant="contained" color="error" disabled={isUpdating}
+                              onClick={() => updateStatus(runner.id, 'declined')}
+                              startIcon={<CancelIcon fontSize="small" />}
+                              sx={{ borderRadius: 2, fontSize: 11 }}>Decline</Button>
+                          </>
+                        )}
+                        {status === 'approved' && (
+                          <Button size="small" variant="outlined" color="warning" disabled={isUpdating}
+                            onClick={() => updateStatus(runner.id, 'suspended')}
+                            startIcon={isUpdating ? <CircularProgress size={12} color="inherit" /> : <PauseCircleIcon fontSize="small" />}
+                            sx={{ borderRadius: 2, fontSize: 11 }}>Suspend</Button>
+                        )}
+                        {['suspended', 'rejected', 'declined'].includes(status) && (
+                          <Button size="small" variant="contained" color="success" disabled={isUpdating}
+                            onClick={() => updateStatus(runner.id, 'approved')}
+                            startIcon={isUpdating ? <CircularProgress size={12} color="inherit" /> : <CheckCircleIcon fontSize="small" />}
+                            sx={{ borderRadius: 2, fontSize: 11 }}>Reactivate</Button>
+                        )}
+                      </Stack>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Card>
 
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2 text-sm">
-                          <Star className="h-4 w-4 text-slate-500" />
-                          <span className="text-slate-500">Rating: {(runner.runners.rating ?? 0).toFixed(1)}/5.0</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm">
-                          <CheckCircle className="h-4 w-4 text-slate-500" />
-                          <span className="text-slate-500">Jobs: {runner.runners.total_jobs}</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm">
-                          <Calendar className="h-4 w-4 text-slate-500" />
-                          <span className="text-slate-500">Joined: {new Date(runner.created_at).toLocaleDateString()}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {runner.hostel_location && (
-                      <div className="text-sm text-slate-500">
-                        <span className="font-semibold">Hostel:</span> {runner.hostel_location}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex flex-col gap-3 lg:w-48">
-                    <button
-                      onClick={() => setSelectedRunner(runner)}
-                      className="flex items-center justify-center gap-2 px-4 py-3 bg-white border border-slate-200/80 text-slate-900 rounded-xl font-semibold hover:bg-white transition-all"
-                    >
-                      View Credentials
-                    </button>
-                    {runner.runners.verification_status === 'pending' && (
-                      <>
-                        <button
-                          onClick={() => updateRunnerStatus(runner.runners.id || runner.id, runner.id, 'approved')}
-                          disabled={updatingRunner !== null}
-                          className="flex items-center justify-center gap-2 px-4 py-3 bg-green-500 text-white rounded-xl font-semibold hover:bg-green-600 transition-all disabled:opacity-50"
-                        >
-                          {updatingRunner === runner.runners.id ? (
-                            <motion.div
-                              animate={{ rotate: 360 }}
-                              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                              className="h-4 w-4 border-2 border-white border-t-transparent rounded-full"
-                            />
-                          ) : (
-                            <CheckCircle className="h-4 w-4" />
-                          )}
-                          Approve
-                        </button>
-                        <button
-                          onClick={() => updateRunnerStatus(runner.runners.id || runner.id, runner.id, 'declined')}
-                          disabled={updatingRunner !== null}
-                          className="flex items-center justify-center gap-2 px-4 py-3 bg-red-500 text-white rounded-xl font-semibold hover:bg-red-600 transition-all disabled:opacity-50"
-                        >
-                          <XCircle className="h-4 w-4" />
-                          Decline
-                        </button>
-                      </>
-                    )}
-
-                    {runner.runners.verification_status === 'approved' && (
-                      <button
-                        onClick={() => updateRunnerStatus(runner.runners.id || runner.id, runner.id, 'suspended')}
-                        disabled={updatingRunner !== null}
-                        className="flex items-center justify-center gap-2 px-4 py-3 bg-gray-500 text-white rounded-xl font-semibold hover:bg-gray-600 transition-all disabled:opacity-50"
-                      >
-                        <Pause className="h-4 w-4" />
-                        Suspend
-                      </button>
-                    )}
-
-                    {runner.runners.verification_status === 'suspended' && (
-                      <button
-                        onClick={() => updateRunnerStatus(runner.runners.id || runner.id, runner.id, 'approved')}
-                        disabled={updatingRunner !== null}
-                        className="flex items-center justify-center gap-2 px-4 py-3 bg-green-500 text-white rounded-xl font-semibold hover:bg-green-600 transition-all disabled:opacity-50"
-                      >
-                        <CheckCircle className="h-4 w-4" />
-                        Reactivate
-                      </button>
-                    )}
-
-                    {(runner.runners.verification_status === 'declined' || runner.runners.verification_status === 'rejected') && (
-                      <button
-                        onClick={() => updateRunnerStatus(runner.runners.id || runner.id, runner.id, 'approved')}
-                        disabled={updatingRunner !== null}
-                        className="flex items-center justify-center gap-2 px-4 py-3 bg-green-500 text-white rounded-xl font-semibold hover:bg-green-600 transition-all disabled:opacity-50"
-                      >
-                        <CheckCircle className="h-4 w-4" />
-                        Approve
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </AnimatePresence>
-        )}
-      </motion.div>
-
-      {/* Credentials Modal */}
-      <AnimatePresence>
-        {selectedRunner && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-            onClick={() => setSelectedRunner(null)}
-          >
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.95, opacity: 0, y: 20 }}
-              onClick={(e) => e.stopPropagation()}
-              className="glass-panel p-6 max-w-lg w-full"
-            >
-              <div className="mb-4">
-                <h3 className="text-2xl font-black text-slate-900">Runner Credentials</h3>
-                <p className="text-slate-500 text-sm">Review details before approval</p>
-              </div>
-
-              <div className="space-y-3 text-sm">
-                <div><span className="font-semibold">Name:</span> {selectedRunner.full_name}</div>
-                <div><span className="font-semibold">Email:</span> {selectedRunner.email}</div>
-                <div><span className="font-semibold">Phone:</span> {selectedRunner.phone}</div>
-                <div><span className="font-semibold">University:</span> {selectedRunner.university}</div>
-                <div><span className="font-semibold">Hostel/Location:</span> {selectedRunner.hostel_location || 'N/A'}</div>
-                <div><span className="font-semibold">Matric Number:</span> {selectedRunner.matric_number || 'N/A'}</div>
-                <div><span className="font-semibold">Student ID:</span> {selectedRunner.runners.student_id_number || 'N/A'}</div>
-                <div><span className="font-semibold">Status:</span> {selectedRunner.runners.verification_status}</div>
-                <div><span className="font-semibold">Joined:</span> {new Date(selectedRunner.created_at).toLocaleDateString()}</div>
-              </div>
-
-              <div className="mt-6 flex gap-3">
-                <button
-                  onClick={() => setSelectedRunner(null)}
-                  className="flex-1 px-4 py-3 bg-gray-100 text-gray-600 rounded-xl font-semibold hover:bg-gray-200 transition-colors"
-                >
-                  Close
-                </button>
-                {selectedRunner.runners.verification_status === 'pending' && (
-                  <>
-                    <button
-                      onClick={() => {
-                        updateRunnerStatus(selectedRunner.runners.id || selectedRunner.id, selectedRunner.id, 'approved');
-                        setSelectedRunner(null);
-                      }}
-                      disabled={updatingRunner !== null}
-                      className="flex-1 px-4 py-3 bg-green-500 text-white rounded-xl font-semibold hover:bg-green-600 transition-all disabled:opacity-50"
-                    >
-                      Approve
-                    </button>
-                    <button
-                      onClick={() => {
-                        updateRunnerStatus(selectedRunner.runners.id || selectedRunner.id, selectedRunner.id, 'declined');
-                        setSelectedRunner(null);
-                      }}
-                      disabled={updatingRunner !== null}
-                      className="flex-1 px-4 py-3 bg-red-500 text-white rounded-xl font-semibold hover:bg-red-600 transition-all disabled:opacity-50"
-                    >
-                      Reject
-                    </button>
-                  </>
-                )}
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+      {detail && (
+        <DetailDialog
+          runner={detail}
+          onClose={() => setDetail(null)}
+          onUpdate={updateStatus}
+          updating={updating}
+        />
+      )}
+    </Box>
   );
 }

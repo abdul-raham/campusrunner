@@ -1,406 +1,350 @@
 'use client';
-
-import { useState, useEffect } from 'react';
+import * as React from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import Box from '@mui/material/Box';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import Typography from '@mui/material/Typography';
+import Stack from '@mui/material/Stack';
+import Grid from '@mui/material/Grid';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import Chip from '@mui/material/Chip';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+import InputAdornment from '@mui/material/InputAdornment';
+import CircularProgress from '@mui/material/CircularProgress';
+import ToggleButton from '@mui/material/ToggleButton';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+import Tabs from '@mui/material/Tabs';
+import Tab from '@mui/material/Tab';
+import SearchIcon from '@mui/icons-material/Search';
+import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import CancelIcon from '@mui/icons-material/Cancel';
+import PaidIcon from '@mui/icons-material/Paid';
+import { alpha } from '@mui/material/styles';
 import { supabase } from '@/lib/supabase';
-import { DollarSign, TrendingUp, TrendingDown, Filter, Search, Calendar, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 
-interface Transaction {
-  id: string;
-  amount: number;
-  status: string;
-  created_at: string;
-  order_id: string;
-  student_id: string;
-  runner_id: string;
-  order: {
-    title: string;
-    service_categories: {
-      name: string;
-    } | null;
-  } | null;
-  student_profile: {
-    full_name: string;
-  } | null;
-  runner_profile: {
-    full_name: string;
-  } | null;
-}
+type Tx = {
+  id: string; amount: number; type: 'credit' | 'debit';
+  status: string; note: string | null; created_at: string;
+  user_id: string; order_id: string | null; user_name: string;
+};
+
+type Withdrawal = {
+  id: string; user_id: string; amount: number; status: string;
+  created_at: string; user_name: string;
+  bank_name: string | null; bank_account_number: string | null; bank_account_name: string | null;
+};
+
+const TX_STATUS: Record<string, { label: string; color: 'success' | 'warning' | 'info' | 'default' }> = {
+  completed: { label: 'Completed', color: 'success' },
+  held:      { label: 'Held',      color: 'warning' },
+  refunded:  { label: 'Refunded',  color: 'info' },
+};
+
+const W_STATUS: Record<string, { label: string; color: 'warning' | 'success' | 'error' | 'info' | 'default' }> = {
+  pending:  { label: 'Pending',  color: 'warning' },
+  approved: { label: 'Approved', color: 'info' },
+  paid:     { label: 'Paid',     color: 'success' },
+  rejected: { label: 'Rejected', color: 'error' },
+};
 
 export default function AdminTransactionsPage() {
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [filteredTransactions, setFilteredTransactions] = useState<Transaction[]>([]);
+  const [txs, setTxs] = useState<Tx[]>([]);
+  const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([]);
   const [loading, setLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [stats, setStats] = useState({
-    totalRevenue: 0,
-    completedTransactions: 0,
-    pendingTransactions: 0,
-    monthlyGrowth: 0
-  });
+  const [tab, setTab] = useState(0);
+  const [txFilter, setTxFilter] = useState('all');
+  const [wFilter, setWFilter] = useState('all');
+  const [search, setSearch] = useState('');
+  const [updating, setUpdating] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchTransactions();
-  }, []);
+  useEffect(() => { fetchAll(); }, []);
 
-  useEffect(() => {
-    filterTransactions();
-  }, [statusFilter, searchTerm, transactions]);
-
-  const fetchTransactions = async () => {
+  const fetchAll = async () => {
+    setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('transactions')
-        .select(`
-          id,
-          amount,
-          status,
-          created_at,
-          order_id,
-          student_id,
-          runner_id
-        `)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      
-      // Transform data to match interface
-      const transformedData = (data || []).map(transaction => ({
-        ...transaction,
-        order: {
-          title: 'Order #' + transaction.order_id?.slice(-6),
-          service_categories: {
-            name: 'General Service'
-          }
-        },
-        student_profile: {
-          full_name: 'Student User'
-        },
-        runner_profile: {
-          full_name: 'Runner User'
-        }
-      }));
-      
-      setTransactions(transformedData);
-      calculateStats(transformedData);
-    } catch (error) {
-      console.error('Error fetching transactions:', error);
-    } finally {
-      setLoading(false);
-    }
+      const { data: { session } } = await supabase.auth.getSession();
+      const authHeader = { Authorization: `Bearer ${session?.access_token ?? ''}` };
+      const [txRes, wRes] = await Promise.all([
+        fetch('/api/admin/transactions', { headers: authHeader }),
+        fetch('/api/admin/withdrawals', { headers: authHeader }),
+      ]);
+      if (txRes.ok) { const d = await txRes.json(); setTxs(d.data || []); }
+      if (wRes.ok)  { const d = await wRes.json();  setWithdrawals(d.data || []); }
+    } finally { setLoading(false); }
   };
 
-  const calculateStats = (data: Transaction[]) => {
-    const completed = data.filter(t => t.status === 'completed');
-    const pending = data.filter(t => t.status === 'pending');
-    const totalRevenue = completed.reduce((sum, t) => sum + t.amount, 0);
-
-    // Calculate monthly growth (mock calculation)
-    const thisMonth = new Date();
-    const lastMonth = new Date(thisMonth.getFullYear(), thisMonth.getMonth() - 1, 1);
-    
-    const thisMonthRevenue = completed
-      .filter(t => new Date(t.created_at) >= lastMonth)
-      .reduce((sum, t) => sum + t.amount, 0);
-    
-    const monthlyGrowth = 12.5; // Mock growth percentage
-
-    setStats({
-      totalRevenue,
-      completedTransactions: completed.length,
-      pendingTransactions: pending.length,
-      monthlyGrowth
-    });
+  const updateWithdrawal = async (id: string, status: string) => {
+    setUpdating(id + status);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch('/api/admin/withdrawals/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session?.access_token ?? ''}` },
+        body: JSON.stringify({ id, status }),
+      });
+      if (res.ok) setWithdrawals(prev => prev.map(w => w.id === id ? { ...w, status } : w));
+    } finally { setUpdating(null); }
   };
 
-  const filterTransactions = () => {
-    let filtered = transactions;
-
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(t => t.status === statusFilter);
+  const filteredTxs = useMemo(() => {
+    let r = [...txs];
+    if (txFilter !== 'all') r = r.filter(t => t.status === txFilter);
+    if (search) {
+      const q = search.toLowerCase();
+      r = r.filter(t => t.user_name.toLowerCase().includes(q) || (t.note || '').toLowerCase().includes(q));
     }
+    return r;
+  }, [txs, txFilter, search]);
 
-    if (searchTerm) {
-      filtered = filtered.filter(t => 
-        t.student_profile?.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        t.runner_profile?.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        t.order?.title.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+  const filteredWithdrawals = useMemo(() => {
+    let r = [...withdrawals];
+    if (wFilter !== 'all') r = r.filter(w => w.status === wFilter);
+    if (search) {
+      const q = search.toLowerCase();
+      r = r.filter(w => w.user_name.toLowerCase().includes(q));
     }
+    return r;
+  }, [withdrawals, wFilter, search]);
 
-    setFilteredTransactions(filtered);
-  };
-
-  const getStatusColor = (status: string) => {
-    switch(status) {
-      case 'completed': return 'bg-emerald-50 border-emerald-200 text-emerald-700';
-      case 'pending': return 'bg-amber-50 border-amber-200 text-amber-700';
-      case 'failed': return 'bg-red-50 border-red-200 text-red-700';
-      default: return 'bg-gray-50 border-gray-200 text-gray-700';
-    }
-  };
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { 
-        duration: 0.6,
-        staggerChildren: 0.15 
-      }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { y: 30, opacity: 0 },
-    visible: { 
-      y: 0, 
-      opacity: 1, 
-      transition: { 
-        duration: 0.8,
-        type: "spring" as const, 
-        stiffness: 80 
-      } 
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="flex-1 flex items-center justify-center ">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="text-center"
-        >
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-            className="mx-auto mb-4 h-16 w-16 rounded-full border-4 border-amber-200 border-t-amber-500"
-          />
-          <motion.p 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            className="text-lg font-semibold text-slate-500"
-          >
-            Loading Transactions...
-          </motion.p>
-        </motion.div>
-      </div>
-    );
-  }
+  const totalRevenue = txs.filter(t => t.status === 'completed' && t.type === 'credit').reduce((s, t) => s + t.amount, 0);
+  const heldCount = txs.filter(t => t.status === 'held').length;
+  const pendingWithdrawals = withdrawals.filter(w => w.status === 'pending').length;
 
   return (
-    <div className="flex-1 p-6 lg:p-8 ">
+    <Box>
       {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
-        className="mb-8"
-      >
-        <div className="flex items-center gap-3 mb-2">
-          <div className="p-2 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white">
-            <DollarSign className="h-6 w-6" />
-          </div>
-          <h1 className="text-3xl font-black text-slate-900">Transaction Management</h1>
-        </div>
-        <p className="text-slate-500">Monitor all financial transactions and revenue</p>
-      </motion.div>
+      <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 3 }}>
+        <Box sx={{ width: 44, height: 44, borderRadius: 3, bgcolor: alpha('#10b981', 0.12), display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#059669' }}>
+          <AccountBalanceWalletIcon />
+        </Box>
+        <Box>
+          <Typography variant="h5" fontWeight={900}>Money & Transactions</Typography>
+          <Typography variant="body2" color="text.secondary">Track wallet flow, holds, and withdrawal requests</Typography>
+        </Box>
+      </Stack>
 
-      {/* Stats Cards */}
-      <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
-      >
-        <motion.div variants={itemVariants} className="relative overflow-hidden">
-          <div className="rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 p-6 text-white">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-2 rounded-lg bg-white/20">
-                <DollarSign className="h-5 w-5" />
-              </div>
-              <ArrowUpRight className="h-5 w-5 opacity-60" />
-            </div>
-            <p className="text-green-100 text-sm font-medium mb-1">Total Revenue</p>
-            <p className="text-2xl font-black">₦{stats.totalRevenue.toLocaleString()}</p>
-            <div className="absolute -right-4 -bottom-4 opacity-10">
-              <DollarSign className="h-20 w-20" />
-            </div>
-          </div>
-        </motion.div>
+      {/* Stat cards */}
+      <Grid container spacing={2} sx={{ mb: 3 }}>
+        {[
+          { label: 'Total Revenue', value: `₦${totalRevenue.toLocaleString()}`, color: '#10b981' },
+          { label: 'Held Funds', value: heldCount, color: '#f59e0b' },
+          { label: 'Pending Withdrawals', value: pendingWithdrawals, color: '#3b82f6' },
+        ].map(s => (
+          <Grid key={s.label} size={{ xs: 12, sm: 4 }}>
+            <Card>
+              <CardContent sx={{ p: 2.5 }}>
+                <Typography variant="caption" fontWeight={700} color="text.secondary"
+                  sx={{ textTransform: 'uppercase', letterSpacing: '0.08em', fontSize: '0.68rem' }}>
+                  {s.label}
+                </Typography>
+                <Typography variant="h5" fontWeight={900} sx={{ color: s.color, mt: 0.5 }}>{s.value}</Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+        ))}
+      </Grid>
 
-        <motion.div variants={itemVariants} className="relative overflow-hidden">
-          <div className="rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-600 p-6 text-white">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-2 rounded-lg bg-white/20">
-                <TrendingUp className="h-5 w-5" />
-              </div>
-              <span className="text-xs bg-white/20 px-2 py-1 rounded-full">+{stats.monthlyGrowth}%</span>
-            </div>
-            <p className="text-blue-100 text-sm font-medium mb-1">Completed</p>
-            <p className="text-2xl font-black">{stats.completedTransactions}</p>
-            <div className="absolute -right-4 -bottom-4 opacity-10">
-              <TrendingUp className="h-20 w-20" />
-            </div>
-          </div>
-        </motion.div>
+      {/* Tabs + search/filter */}
+      <Card sx={{ mb: 2 }}>
+        <CardContent sx={{ p: 2 }}>
+          <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems={{ md: 'center' }}>
+            <Tabs
+              value={tab}
+              onChange={(_, v) => { setTab(v); setSearch(''); }}
+              sx={{
+                minHeight: 36,
+                '& .MuiTab-root': { minHeight: 36, fontWeight: 700, fontSize: 13, textTransform: 'none', px: 2 },
+                '& .MuiTabs-indicator': { bgcolor: '#f59e0b' },
+              }}
+            >
+              <Tab label="Wallet Transactions" />
+              <Tab label={`Withdrawals${pendingWithdrawals > 0 ? ` (${pendingWithdrawals})` : ''}`} />
+            </Tabs>
 
-        <motion.div variants={itemVariants} className="relative overflow-hidden">
-          <div className="rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 p-6 text-white">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-2 rounded-lg bg-white/20">
-                <Calendar className="h-5 w-5" />
-              </div>
-              <ArrowDownLeft className="h-5 w-5 opacity-60" />
-            </div>
-            <p className="text-amber-100 text-sm font-medium mb-1">Pending</p>
-            <p className="text-2xl font-black">{stats.pendingTransactions}</p>
-            <div className="absolute -right-4 -bottom-4 opacity-10">
-              <Calendar className="h-20 w-20" />
-            </div>
-          </div>
-        </motion.div>
+            <Box sx={{ flex: 1 }} />
 
-        <motion.div variants={itemVariants} className="relative overflow-hidden">
-          <div className="rounded-2xl bg-gradient-to-br from-purple-500 to-pink-600 p-6 text-white">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-2 rounded-lg bg-white/20">
-                <TrendingUp className="h-5 w-5" />
-              </div>
-              <span className="text-xs bg-white/20 px-2 py-1 rounded-full">Growth</span>
-            </div>
-            <p className="text-purple-100 text-sm font-medium mb-1">Monthly Growth</p>
-            <p className="text-2xl font-black">+{stats.monthlyGrowth}%</p>
-            <div className="absolute -right-4 -bottom-4 opacity-10">
-              <TrendingUp className="h-20 w-20" />
-            </div>
-          </div>
-        </motion.div>
-      </motion.div>
+            <TextField
+              size="small" placeholder="Search name or note…"
+              value={search} onChange={e => setSearch(e.target.value)}
+              InputProps={{ startAdornment: <InputAdornment position="start"><SearchIcon fontSize="small" /></InputAdornment> }}
+              sx={{ width: { xs: '100%', md: 220 } }}
+            />
 
-      {/* Filters */}
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3, duration: 0.8 }}
-        className="mb-6"
-      >
-        <div className="glass-card p-6">
-          <div className="flex flex-col lg:flex-row gap-4">
-            {/* Search */}
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-500" />
-              <input
-                type="text"
-                placeholder="Search transactions..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-slate-200/80 rounded-xl bg-white/50 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent"
-              />
-            </div>
-
-            {/* Status Filter */}
-            <div className="flex gap-2">
-              {['all', 'completed', 'pending', 'failed'].map(status => (
-                <button
-                  key={status}
-                  onClick={() => setStatusFilter(status)}
-                  className={`px-4 py-3 rounded-xl font-semibold transition-all ${
-                    statusFilter === status
-                      ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-lg'
-                      : 'bg-white/50 border border-slate-200/80 text-slate-500 hover:bg-white'
-                  }`}
-                >
-                  {status.charAt(0).toUpperCase() + status.slice(1)}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* Transactions List */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.5, duration: 0.8 }}
-      >
-        <div className="glass-card overflow-hidden">
-          {filteredTransactions.length === 0 ? (
-            <div className="p-12 text-center">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 mb-4">
-                <DollarSign className="h-8 w-8 text-gray-400" />
-              </div>
-              <p className="text-slate-500 text-lg">No transactions found</p>
-            </div>
-          ) : (
-            <div className="divide-y divide-[#E9E4FF]">
-              <AnimatePresence>
-                {filteredTransactions.map((transaction, idx) => (
-                  <motion.div
-                    key={transaction.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 20 }}
-                    transition={{ delay: idx * 0.08, duration: 0.6 }}
-                    className="p-6 hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-purple-50/50 transition-all duration-300"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <div className={`p-3 rounded-xl ${
-                          transaction.status === 'completed' 
-                            ? 'bg-gradient-to-br from-emerald-500 to-teal-600' 
-                            : transaction.status === 'pending'
-                            ? 'bg-gradient-to-br from-amber-500 to-orange-500'
-                            : 'bg-gradient-to-br from-red-500 to-pink-500'
-                        } text-white`}>
-                          <DollarSign className="h-5 w-5" />
-                        </div>
-                        
-                        <div>
-                          <h3 className="font-semibold text-slate-900 mb-1">
-                            {transaction.order?.title || 'Order Transaction'}
-                          </h3>
-                          <div className="flex items-center gap-4 text-sm text-slate-500">
-                            <span>👤 {transaction.student_profile?.full_name}</span>
-                            {transaction.runner_profile && (
-                              <span>🏃 {transaction.runner_profile.full_name}</span>
-                            )}
-                            <span>📦 {transaction.order?.service_categories?.name}</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="text-right">
-                        <div className="flex items-center gap-3 mb-2">
-                          <span className="text-2xl font-black text-slate-900">
-                            ₦{transaction.amount.toLocaleString()}
-                          </span>
-                          <span className={`px-3 py-1 rounded-lg border font-semibold text-sm ${getStatusColor(transaction.status)}`}>
-                            {transaction.status.toUpperCase()}
-                          </span>
-                        </div>
-                        <p className="text-sm text-slate-500">
-                          {new Date(transaction.created_at).toLocaleDateString('en-US', {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}
-                        </p>
-                      </div>
-                    </div>
-                  </motion.div>
+            {tab === 0 ? (
+              <ToggleButtonGroup size="small" value={txFilter} exclusive onChange={(_, v) => v && setTxFilter(v)}>
+                {['all', 'completed', 'held', 'refunded'].map(s => (
+                  <ToggleButton key={s} value={s} sx={{ px: 1.5, fontWeight: 700, fontSize: 11 }}>
+                    {s.charAt(0).toUpperCase() + s.slice(1)}
+                  </ToggleButton>
                 ))}
-              </AnimatePresence>
-            </div>
-          )}
-        </div>
-      </motion.div>
-    </div>
+              </ToggleButtonGroup>
+            ) : (
+              <ToggleButtonGroup size="small" value={wFilter} exclusive onChange={(_, v) => v && setWFilter(v)}>
+                {['all', 'pending', 'approved', 'paid', 'rejected'].map(s => (
+                  <ToggleButton key={s} value={s} sx={{ px: 1.5, fontWeight: 700, fontSize: 11 }}>
+                    {s.charAt(0).toUpperCase() + s.slice(1)}
+                  </ToggleButton>
+                ))}
+              </ToggleButtonGroup>
+            )}
+          </Stack>
+        </CardContent>
+      </Card>
+
+      {/* Transactions table */}
+      {tab === 0 && (
+        <Card>
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Type</TableCell>
+                  <TableCell>User</TableCell>
+                  <TableCell>Note</TableCell>
+                  <TableCell>Amount</TableCell>
+                  <TableCell>Status</TableCell>
+                  <TableCell>Date</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {loading ? (
+                  <TableRow><TableCell colSpan={6} align="center" sx={{ py: 6 }}><CircularProgress sx={{ color: '#f59e0b' }} /></TableCell></TableRow>
+                ) : filteredTxs.length === 0 ? (
+                  <TableRow><TableCell colSpan={6} align="center" sx={{ py: 6 }}><Typography color="text.secondary">No transactions found</Typography></TableCell></TableRow>
+                ) : filteredTxs.map(tx => {
+                  const sc = TX_STATUS[tx.status] || { label: tx.status, color: 'default' as const };
+                  const isCredit = tx.type === 'credit';
+                  return (
+                    <TableRow key={tx.id} hover>
+                      <TableCell>
+                        <Box sx={{
+                          width: 32, height: 32, borderRadius: 2,
+                          bgcolor: alpha(isCredit ? '#10b981' : '#ef4444', 0.1),
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          color: isCredit ? '#10b981' : '#ef4444',
+                        }}>
+                          {isCredit ? <ArrowUpwardIcon sx={{ fontSize: 16 }} /> : <ArrowDownwardIcon sx={{ fontSize: 16 }} />}
+                        </Box>
+                      </TableCell>
+                      <TableCell><Typography variant="body2" fontWeight={700}>{tx.user_name}</Typography></TableCell>
+                      <TableCell>
+                        <Typography variant="body2" color="text.secondary" noWrap sx={{ maxWidth: 200 }}>
+                          {tx.note || (tx.order_id ? `Order #${tx.order_id.slice(-6)}` : tx.type)}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2" fontWeight={800} sx={{ color: isCredit ? '#10b981' : '#ef4444' }}>
+                          {isCredit ? '+' : '-'}₦{tx.amount.toLocaleString()}
+                        </Typography>
+                      </TableCell>
+                      <TableCell><Chip label={sc.label} color={sc.color} size="small" /></TableCell>
+                      <TableCell>
+                        <Typography variant="body2" color="text.secondary">
+                          {new Date(tx.created_at).toLocaleDateString()}
+                        </Typography>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Card>
+      )}
+
+      {/* Withdrawals table */}
+      {tab === 1 && (
+        <Card>
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Runner</TableCell>
+                  <TableCell>Amount</TableCell>
+                  <TableCell>Bank Details</TableCell>
+                  <TableCell>Status</TableCell>
+                  <TableCell>Date</TableCell>
+                  <TableCell align="right">Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {loading ? (
+                  <TableRow><TableCell colSpan={6} align="center" sx={{ py: 6 }}><CircularProgress sx={{ color: '#f59e0b' }} /></TableCell></TableRow>
+                ) : filteredWithdrawals.length === 0 ? (
+                  <TableRow><TableCell colSpan={6} align="center" sx={{ py: 6 }}><Typography color="text.secondary">No withdrawal requests found</Typography></TableCell></TableRow>
+                ) : filteredWithdrawals.map(w => {
+                  const sc = W_STATUS[w.status] || { label: w.status, color: 'default' as const };
+                  return (
+                    <TableRow key={w.id} hover>
+                      <TableCell>
+                        <Typography variant="body2" fontWeight={700}>{w.user_name}</Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2" fontWeight={800} sx={{ color: '#10b981' }}>
+                          ₦{w.amount.toLocaleString()}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2" fontWeight={600}>{w.bank_name || '—'}</Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {w.bank_account_number || '—'} · {w.bank_account_name || ''}
+                        </Typography>
+                      </TableCell>
+                      <TableCell><Chip label={sc.label} color={sc.color} size="small" /></TableCell>
+                      <TableCell>
+                        <Typography variant="body2" color="text.secondary">
+                          {new Date(w.created_at).toLocaleDateString()}
+                        </Typography>
+                      </TableCell>
+                      <TableCell align="right">
+                        <Stack direction="row" spacing={0.5} justifyContent="flex-end">
+                          {w.status === 'pending' && (
+                            <Button size="small" variant="contained" color="success"
+                              disabled={updating === w.id + 'approved'}
+                              startIcon={updating === w.id + 'approved' ? <CircularProgress size={12} /> : <CheckCircleIcon sx={{ fontSize: 14 }} />}
+                              onClick={() => updateWithdrawal(w.id, 'approved')}
+                              sx={{ borderRadius: 2, fontSize: 11 }}>
+                              Approve
+                            </Button>
+                          )}
+                          {(w.status === 'pending' || w.status === 'approved') && (
+                            <Button size="small" variant="contained"
+                              disabled={updating === w.id + 'paid'}
+                              startIcon={updating === w.id + 'paid' ? <CircularProgress size={12} /> : <PaidIcon sx={{ fontSize: 14 }} />}
+                              onClick={() => updateWithdrawal(w.id, 'paid')}
+                              sx={{ borderRadius: 2, fontSize: 11, bgcolor: '#3b82f6', '&:hover': { bgcolor: '#2563eb' } }}>
+                              Mark Paid
+                            </Button>
+                          )}
+                          {w.status === 'pending' && (
+                            <Button size="small" variant="outlined" color="error"
+                              disabled={updating === w.id + 'rejected'}
+                              startIcon={<CancelIcon sx={{ fontSize: 14 }} />}
+                              onClick={() => updateWithdrawal(w.id, 'rejected')}
+                              sx={{ borderRadius: 2, fontSize: 11 }}>
+                              Reject
+                            </Button>
+                          )}
+                        </Stack>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Card>
+      )}
+    </Box>
   );
 }

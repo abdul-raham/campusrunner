@@ -80,6 +80,7 @@ CREATE INDEX IF NOT EXISTS idx_wallet_holds_order_id ON wallet_holds(order_id);
 CREATE INDEX IF NOT EXISTS idx_wallet_tx_user_id ON wallet_transactions(user_id);
 ALTER TABLE wallet_transactions ADD COLUMN IF NOT EXISTS reference text;
 CREATE UNIQUE INDEX IF NOT EXISTS idx_wallet_tx_reference ON wallet_transactions(reference) WHERE reference IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_wallet_tx_user_created ON wallet_transactions(user_id, created_at);
 
 -- Withdrawal requests
 CREATE TABLE IF NOT EXISTS withdrawal_requests (
@@ -91,6 +92,12 @@ CREATE TABLE IF NOT EXISTS withdrawal_requests (
 );
 
 CREATE INDEX IF NOT EXISTS idx_withdrawal_user_id ON withdrawal_requests(user_id);
+CREATE INDEX IF NOT EXISTS idx_withdrawal_status ON withdrawal_requests(status);
+
+-- Orders indexes
+CREATE INDEX IF NOT EXISTS idx_orders_student_id ON orders(student_id);
+CREATE INDEX IF NOT EXISTS idx_orders_runner_id ON orders(runner_id);
+CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
 
 -- RLS for wallet tables
 ALTER TABLE wallets ENABLE ROW LEVEL SECURITY;
@@ -176,3 +183,16 @@ ON storage.objects FOR UPDATE
 TO authenticated
 USING (bucket_id = 'avatars' AND auth.uid() = owner)
 WITH CHECK (bucket_id = 'avatars' AND auth.uid() = owner);
+
+-- Production: client error logs (optional)
+CREATE TABLE IF NOT EXISTS client_error_logs (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id uuid REFERENCES profiles(id) ON DELETE SET NULL,
+  message text NOT NULL,
+  stack text,
+  url text,
+  user_agent text,
+  created_at timestamp DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_client_error_logs_created_at ON client_error_logs(created_at);

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { rateLimit } from '@/lib/rateLimit';
+import crypto from 'crypto';
 
 const getAdminClient = () => {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -11,22 +11,30 @@ const getAdminClient = () => {
 
 export async function POST(req: Request) {
   try {
-    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
-    const rl = rateLimit(`paystack_verify:${ip}`, 20, 60_000);
-    if (!rl.allowed) {
-      return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
-    }
-    const body = await req.json().catch(() => null);
-    const reference = body?.reference as string | undefined;
-    const userId = body?.userId as string | undefined;
-
-    if (!reference || !userId) {
-      return NextResponse.json({ error: 'Invalid payload' }, { status: 400 });
-    }
-
     const secretKey = process.env.PAYSTACK_SECRET_KEY;
     if (!secretKey) {
       return NextResponse.json({ error: 'Paystack not configured' }, { status: 500 });
+    }
+
+    const signature = req.headers.get('x-paystack-signature') || '';
+    const rawBody = await req.text();
+    const expected = crypto.createHmac('sha512', secretKey).update(rawBody).digest('hex');
+    if (signature !== expected) {
+      return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
+    }
+
+    const event = JSON.parse(rawBody);
+    if (event?.event !== 'charge.success') {
+      return NextResponse.json({ received: true });
+    }
+
+    const data = event?.data || {};
+    const reference = data?.reference as string | undefined;
+    const amount = Number(data?.amount || 0) / 100;
+    const userId = data?.metadata?.user_id as string | undefined;
+
+    if (!reference || !userId || !amount || amount <= 0) {
+      return NextResponse.json({ error: 'Invalid payload' }, { status: 400 });
     }
 
     const admin = getAdminClient();
@@ -34,7 +42,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Server not configured' }, { status: 500 });
     }
 
-    // Idempotency: check if reference already credited
     const { data: existing } = await admin
       .from('wallet_transactions')
       .select('id')
@@ -44,23 +51,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: true, alreadyCredited: true });
     }
 
-    const res = await fetch(`https://api.paystack.co/transaction/verify/${reference}`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${secretKey}`,
-      },
-    });
-    const data = await res.json();
-    if (!res.ok || !data.status || data.data?.status !== 'success') {
-      return NextResponse.json({ error: data?.message || 'Verification failed' }, { status: 500 });
-    }
-
-    const amount = Number(data.data?.amount || 0) / 100;
-    if (!amount || amount <= 0) {
-      return NextResponse.json({ error: 'Invalid amount' }, { status: 400 });
-    }
-
-    // credit wallet
     const { data: w } = await admin
       .from('wallets')
       .select('id, balance, user_id, student_id')
@@ -88,12 +78,12 @@ export async function POST(req: Request) {
       type: 'credit',
       status: 'completed',
       reference,
-      note: 'Wallet funding via Paystack',
+      note: 'Wallet funding via Paystack (webhook)',
     });
 
-    return NextResponse.json({ success: true, amount });
+    return NextResponse.json({ success: true });
   } catch (e: any) {
-    console.error('Paystack verify error:', e);
+    console.error('Paystack webhook error:', e);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

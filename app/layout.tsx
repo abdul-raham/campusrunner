@@ -1,25 +1,19 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import "./globals.css";
 import "./auth.css";
 import SimpleErrorBoundary from '../components/SimpleErrorBoundary';
 import { ThemeProvider } from './components/theme-provider';
+import ClientErrorReporter from '../components/ClientErrorReporter';
+import TopLoadingBar from '../components/TopLoadingBar';
+import NavigationProgress from '../components/NavigationProgress';
 
 export const metadata: Metadata = {
   title: 'CampusRunner',
   description: 'Run your campus smarter - Connect with verified student runners for food delivery, laundry service, package pickup, and more.',
   manifest: '/manifest.json',
-  themeColor: '#0ea5e9',
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
-  },
   icons: {
-    icon: [
-      { url: "/favicon.svg", type: "image/svg+xml" },
-      { url: "/favicon.ico", sizes: "any" },
-    ],
+    icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
     shortcut: "/favicon.svg",
     apple: "/favicon.svg",
   },
@@ -33,6 +27,8 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+        <meta name="theme-color" content="#0ea5e9" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
@@ -62,6 +58,11 @@ export default function RootLayout({
           defaultTheme="dark"
           enableSystem={false}
         >
+          <Suspense fallback={null}>
+            <TopLoadingBar />
+          </Suspense>
+          <NavigationProgress />
+          <ClientErrorReporter />
           <SimpleErrorBoundary>
             {children}
           </SimpleErrorBoundary>

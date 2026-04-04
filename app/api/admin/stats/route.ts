@@ -59,11 +59,16 @@ export async function GET() {
       .select('id, runners(verification_status)')
       .eq('role', 'runner');
 
-    const pendingRunnersCount = (runners || []).filter((runner) => {
+    const statuses = (runners || []).map((runner) => {
       const r = runner.runners as { verification_status: string } | { verification_status: string }[] | null;
       const status = Array.isArray(r) ? r[0]?.verification_status : r?.verification_status;
-      return !status || status === 'pending';
-    }).length;
+      return status || 'pending';
+    });
+
+    const pendingRunnersCount = statuses.filter((s) => s === 'pending').length;
+    const approvedRunnersCount = statuses.filter((s) => s === 'approved' || s === 'verified').length;
+    const suspendedRunnersCount = statuses.filter((s) => s === 'suspended').length;
+    const rejectedRunnersCount = statuses.filter((s) => s === 'rejected' || s === 'declined').length;
 
     const { data: orders } = await adminClient
       .from('orders')
@@ -76,6 +81,9 @@ export async function GET() {
       totalStudents: students?.length || 0,
       totalRunners: runners?.length || 0,
       pendingRunners: pendingRunnersCount || 0,
+      approvedRunners: approvedRunnersCount || 0,
+      suspendedRunners: suspendedRunnersCount || 0,
+      rejectedRunners: rejectedRunnersCount || 0,
       totalOrders: orders?.length || 0,
       completedOrders: completedOrders.length,
       revenue,
